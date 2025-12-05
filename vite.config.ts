@@ -56,5 +56,13 @@
     server: {
       port: 3000,
       open: true,
+      proxy: {
+        '/api/n8n': {
+          target: 'https://n8n.zakazhi.online',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/n8n/, ''),
+          secure: true,
+        },
+      },
     },
   });

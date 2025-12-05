@@ -1,0 +1,106 @@
+{
+  "name": "Restaurant Orders to Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "order",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-order",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "order"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем данные из вебхука\nconst orderData = $input.item.json;\n\n// Форматируем сообщение\nconst orderNumber = orderData.orderNumber;\nconst totalAmount = orderData.totalAmount;\nconst time = orderData.time;\nconst date = orderData.date;\n\n// Форматируем список блюд\nlet itemsText = '';\norderData.items.forEach((item, index) => {\n  const itemName = item.item.name;\n  const quantity = item.quantity;\n  const price = item.item.price;\n  const itemTotal = price * quantity;\n  \n  // Добавляем информацию об убранных ингредиентах\n  let removedInfo = '';\n  if (item.removedIngredients && item.removedIngredients.length > 0) {\n    removedInfo = `\\n   Без: ${item.removedIngredients.join(', ')}`;\n  }\n  \n  itemsText += `${index + 1}. ${itemName} x${quantity} - ${itemTotal} ₽${removedInfo}\\n`;\n});\n\n// Формируем итоговое сообщение\nconst message = `🍽️ *Новый заказ #${orderNumber}*\n\n📅 Дата: ${date}\n🕐 Время: ${time}\n\n📋 *Состав заказа:*\n${itemsText}\n\n💰 *Итого: ${totalAmount} ₽*\n\n${orderData.restaurantId ? `🏢 ID ресторана: ${orderData.restaurantId}` : ''}`;\n\nreturn {\n  json: {\n    message: message,\n    orderNumber: orderNumber,\n    totalAmount: totalAmount\n  }\n};"
+      },
+      "id": "format-message",
+      "name": "Format Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "YOUR_CHAT_ID",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-send",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-credential-id",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"orderNumber\": $json.orderNumber } }}"
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Format Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Message": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Telegram": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-11-23T00:00:00.000Z",
+  "versionId": "1"
+}
+

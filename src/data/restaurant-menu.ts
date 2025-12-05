@@ -197,44 +197,6 @@ export const restaurantMenu: MenuItem[] = [
     "isPopular": true
   },
   {
-    "id": "viva_11",
-    "name": "Лазанья с телятиной из печи",
-    "description": "Классическая итальянская лазанья с телятиной и сыром",
-    "price": 820,
-    "image": "https://vivabistro.ru/custom/viva/img/no_image.png",
-    "category": "mains",
-    "calories": 580,
-    "nutrients": {
-      "proteins": 28,
-      "fats": 22,
-      "carbs": 45
-    },
-    "weight": "350 г",
-    "ingredients": ["листы лазаньи", "телятина", "сыр", "томатный соус", "базилик"],
-    "allergens": ["глютен", "молочные продукты"],
-    "tags": ["итальянское", "с мясом", "сытное"],
-    "isPopular": false
-  },
-  {
-    "id": "viva_12",
-    "name": "Спагетти с креветками и страчателлой",
-    "description": "Паста с креветками и нежным сыром страчателла",
-    "price": 860,
-    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2636_spagetti-s--krevetkami-i-st.jpg?v4",
-    "category": "mains",
-    "calories": 520,
-    "nutrients": {
-      "proteins": 25,
-      "fats": 18,
-      "carbs": 55
-    },
-    "weight": "320 г",
-    "ingredients": ["спагетти", "креветки", "страчателла", "чеснок", "петрушка", "оливковое масло"],
-    "allergens": ["глютен", "молочные продукты", "рыба"],
-    "tags": ["итальянское", "с рыбой", "популярное"],
-    "isPopular": true
-  },
-  {
     "id": "viva_13",
     "name": "Трюфельный ризотто с гребешком",
     "description": "Премиальное ризотто с трюфелем и гребешком",
@@ -334,7 +296,7 @@ export const restaurantMenu: MenuItem[] = [
     "name": "Домашний лимонад",
     "description": "Освежающий лимонад с мятой и лаймом",
     "price": 250,
-    "image": "https://images.unsplash.com/photo-1573500883698-e3ef47a95feb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmVzaCUyMGxlbW9uYWRlJTIwZHJpbmt8ZW58MXx8fHwxNzYwOTc3MDQzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "image": "/images/lemonade.jpg",
     "category": "drinks",
     "calories": 85,
     "nutrients": {
@@ -353,7 +315,7 @@ export const restaurantMenu: MenuItem[] = [
     "name": "Свежевыжатый апельсиновый сок",
     "description": "Натуральный сок из свежих апельсинов",
     "price": 280,
-    "image": "https://images.unsplash.com/photo-1622624298402-34829e10f911?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvcmFuZ2UlMjBqdWljZSUyMGdsYXNzfGVufDF8fHx8MTc2MDkxNTcxMnww&ixlib=rb-4.1.0&q=80&w=1080",
+    "image": "/images/orange-juice.jpg",
     "category": "drinks",
     "calories": 112,
     "nutrients": {
@@ -372,7 +334,7 @@ export const restaurantMenu: MenuItem[] = [
     "name": "Лимончелло",
     "description": "Традиционный итальянский ликер из лимонной цедры",
     "price": 450,
-    "image": "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsaW1vbmNlbGxvJTIwYWxjb2hvbHxlbnwxfHx8fDE3NjA5ODU2ODd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    "image": "/images/limoncello.jpg",
     "category": "drinks",
     "calories": 320,
     "nutrients": {
@@ -535,21 +497,6 @@ export const restaurantMenu: MenuItem[] = [
     allergens: ['яйца'],
     tags: ['премиум', 'с мясом'],
     isNew: true
-  },
-  {
-    id: 'viva_11',
-    name: 'Креветки и кальмары жареные в масле нуазет',
-    description: 'Креветки и кальмары, обжаренные в сливочном масле с травами',
-    price: 550,
-    image: 'https://vivabistro.ru/custom/viva/img/no_image.png',
-    category: 'appetizers',
-    calories: 380,
-    nutrients: { proteins: 28, fats: 22, carbs: 8 },
-    weight: '180 г',
-    ingredients: ['креветки', 'кальмары', 'сливочное масло', 'чеснок', 'петрушка'],
-    allergens: ['рыба', 'молочные продукты'],
-    tags: ['с рыбой', 'премиум'],
-    isPopular: false
   },
   {
     id: 'viva_12',
@@ -938,21 +885,6 @@ export const restaurantMenu: MenuItem[] = [
     isPopular: false
   },
   {
-    id: 'viva_37',
-    name: 'Пицца с томатами и страчателлой',
-    description: 'Пицца с томатами и нежным сыром страчателла',
-    price: 650,
-    image: 'https://vivabistro.ru/custom/viva/img/no_image.png',
-    category: 'mains',
-    calories: 450,
-    nutrients: { proteins: 20, fats: 20, carbs: 50 },
-    weight: '330 г',
-    ingredients: ['тесто для пиццы', 'томаты', 'страчателла', 'базилик', 'оливковое масло'],
-    allergens: ['глютен', 'молочные продукты'],
-    tags: ['вегетарианское', 'итальянское'],
-    isPopular: false
-  },
-  {
     id: 'viva_38',
     name: 'Говядина с грибами и брокколи',
     description: 'Пицца с говядиной, грибами и брокколи',
@@ -965,21 +897,6 @@ export const restaurantMenu: MenuItem[] = [
     ingredients: ['тесто для пиццы', 'говядина', 'грибы', 'брокколи', 'сыр', 'соус'],
     allergens: ['глютен', 'молочные продукты'],
     tags: ['с мясом', 'итальянское'],
-    isPopular: false
-  },
-  {
-    id: 'viva_39',
-    name: 'Барбекю',
-    description: 'Пицца с соусом барбекю и мясом',
-    price: 670,
-    image: 'https://vivabistro.ru/custom/viva/img/no_image.png',
-    category: 'mains',
-    calories: 520,
-    nutrients: { proteins: 28, fats: 22, carbs: 48 },
-    weight: '340 г',
-    ingredients: ['тесто для пиццы', 'мясо', 'соус барбекю', 'лук', 'сыр'],
-    allergens: ['глютен', 'молочные продукты'],
-    tags: ['с мясом', 'американское'],
     isPopular: false
   },
   {
@@ -1010,21 +927,6 @@ export const restaurantMenu: MenuItem[] = [
     ingredients: ['тесто для пиццы', 'чоризо', 'чили', 'сыр', 'лук'],
     allergens: ['глютен', 'молочные продукты'],
     tags: ['острое', 'с мясом', 'испанское'],
-    isPopular: false
-  },
-  {
-    id: 'viva_42',
-    name: 'Карбонара',
-    description: 'Пицца в стиле карбонара с беконом и яйцом',
-    price: 530,
-    image: 'https://vivabistro.ru/custom/viva/img/no_image.png',
-    category: 'mains',
-    calories: 480,
-    nutrients: { proteins: 22, fats: 20, carbs: 45 },
-    weight: '330 г',
-    ingredients: ['тесто для пиццы', 'бекон', 'яйцо', 'сыр', 'черный перец'],
-    allergens: ['глютен', 'молочные продукты', 'яйца'],
-    tags: ['с мясом', 'итальянское'],
     isPopular: false
   },
 
@@ -1304,36 +1206,6 @@ export const restaurantMenu: MenuItem[] = [
     isPopular: false
   },
   {
-    id: 'viva_61',
-    name: 'Лазанья с телятиной из печи',
-    description: 'Классическая итальянская лазанья с телятиной и сыром',
-    price: 820,
-    image: 'https://vivabistro.ru/custom/viva/img/no_image.png',
-    category: 'mains',
-    calories: 580,
-    nutrients: { proteins: 28, fats: 22, carbs: 45 },
-    weight: '350 г',
-    ingredients: ['листы лазаньи', 'телятина', 'сыр', 'томатный соус', 'базилик'],
-    allergens: ['глютен', 'молочные продукты'],
-    tags: ['итальянское', 'с мясом', 'сытное'],
-    isPopular: false
-  },
-  {
-    id: 'viva_62',
-    name: 'Спагетти с креветками и страчателлой',
-    description: 'Паста с креветками и нежным сыром страчателла',
-    price: 860,
-    image: 'https://vivabistro.ru/userfls/viva/shop/goods_list/2636_spagetti-s--krevetkami-i-st.jpg?v4',
-    category: 'mains',
-    calories: 520,
-    nutrients: { proteins: 25, fats: 18, carbs: 55 },
-    weight: '320 г',
-    ingredients: ['спагетти', 'креветки', 'страчателла', 'чеснок', 'петрушка', 'оливковое масло'],
-    allergens: ['глютен', 'молочные продукты', 'рыба'],
-    tags: ['итальянское', 'с рыбой', 'популярное'],
-    isPopular: true
-  },
-  {
     id: 'viva_63',
     name: 'Греча с говядиной и муссом из пармезана',
     description: 'Гречка с говядиной и воздушным муссом из пармезана',
@@ -1377,21 +1249,6 @@ export const restaurantMenu: MenuItem[] = [
     allergens: ['молочные продукты', 'рыба'],
     tags: ['премиум', 'с рыбой', 'итальянское'],
     isNew: true
-  },
-  {
-    id: 'viva_66',
-    name: 'Утиная ножка конфи с гречей',
-    description: 'Утиная ножка конфи с гречкой и соусом',
-    price: 870,
-    image: 'https://vivabistro.ru/custom/viva/img/no_image.png',
-    category: 'mains',
-    calories: 580,
-    nutrients: { proteins: 35, fats: 28, carbs: 25 },
-    weight: '350 г',
-    ingredients: ['утиная ножка', 'гречка', 'овощи', 'соус', 'травы'],
-    allergens: [],
-    tags: ['премиум', 'с мясом', 'французское'],
-    isPopular: false
   },
   {
     id: 'viva_67',
@@ -1706,7 +1563,7 @@ export const restaurantMenu: MenuItem[] = [
     name: 'Домашний лимонад',
     description: 'Освежающий лимонад с мятой и лаймом',
     price: 250,
-    image: 'https://images.unsplash.com/photo-1573500883698-e3ef47a95feb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmVzaCUyMGxlbW9uYWRlJTIwZHJpbmt8ZW58MXx8fHwxNzYwOTc3MDQzfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/images/lemonade.jpg',
     category: 'drinks',
     calories: 85,
     nutrients: { proteins: 0.2, fats: 0.1, carbs: 21.5 },
@@ -1721,7 +1578,7 @@ export const restaurantMenu: MenuItem[] = [
     name: 'Свежевыжатый апельсиновый сок',
     description: 'Натуральный сок из свежих апельсинов',
     price: 280,
-    image: 'https://images.unsplash.com/photo-1622624298402-34829e10f911?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvcmFuZ2UlMjBqdWljZSUyMGdsYXNzfGVufDF8fHx8MTc2MDkxNTcxMnww&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/images/orange-juice.jpg',
     category: 'drinks',
     calories: 112,
     nutrients: { proteins: 1.8, fats: 0.5, carbs: 26.2 },

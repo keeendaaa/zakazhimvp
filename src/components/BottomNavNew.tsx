@@ -1,4 +1,4 @@
-import { Home, Coffee, UtensilsCrossed, ShoppingCart, Cake } from 'lucide-react';
+import { Home, Coffee, UtensilsCrossed, ShoppingCart } from 'lucide-react';
 import { Badge } from './ui/badge';
 
 interface BottomNavNewProps {
@@ -16,7 +16,6 @@ export default function BottomNavNew({
     { id: 'home', label: 'главная', icon: Home },
     { id: 'drinks', label: 'напитки', icon: Coffee },
     { id: 'breakfast', label: 'еда', icon: UtensilsCrossed },
-    { id: 'desserts', label: 'десерты', icon: Cake },
     { id: 'cart', label: 'корзина', icon: ShoppingCart },
   ];
 

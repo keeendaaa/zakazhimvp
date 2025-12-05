@@ -26,6 +26,15 @@ export interface MenuItem {
 export interface CartItem {
   item: MenuItem;
   quantity: number;
+  removedIngredients?: string[]; // Ингредиенты, которые пользователь убрал
+}
+
+export interface OrderHistoryItem {
+  orderNumber: string;
+  items: CartItem[];
+  time: string;
+  date: string;
+  totalAmount: number;
 }
 
 export type ViewMode = 'collections' | 'menu' | 'assistant' | 'cart';

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MenuItem } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { X, Plus } from 'lucide-react';
+import { Plus, ArrowLeft, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Sheet, SheetContent } from './ui/sheet';
 import { motion, AnimatePresence } from 'motion/react';
@@ -10,7 +10,7 @@ interface ItemDetailSheetProps {
   item: MenuItem;
   menuItems: MenuItem[];
   onClose: () => void;
-  onAddToCart: (item: MenuItem) => void;
+  onAddToCart: (item: MenuItem, removedIngredients?: string[]) => void;
   onItemSelect?: (item: MenuItem) => void;
 }
 
@@ -23,6 +23,7 @@ export default function ItemDetailSheet({
 }: ItemDetailSheetProps) {
   const [showComposition, setShowComposition] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [removedIngredients, setRemovedIngredients] = useState<string[]>([]);
 
   // Find similar items in same category
   const similarItems = menuItems
@@ -30,15 +31,23 @@ export default function ItemDetailSheet({
     .slice(0, 2);
 
   const handleAddToCart = () => {
-    onAddToCart(item);
+    onAddToCart(item, removedIngredients.length > 0 ? removedIngredients : undefined);
     onClose();
+  };
+
+  const toggleIngredient = (ingredient: string) => {
+    setRemovedIngredients(prev => 
+      prev.includes(ingredient)
+        ? prev.filter(ing => ing !== ingredient)
+        : [...prev, ingredient]
+    );
   };
 
   return (
     <Sheet open={true} onOpenChange={onClose}>
       <SheetContent 
         side="bottom" 
-        className="h-[90vh] rounded-t-3xl p-0 overflow-y-auto"
+        className="h-[90vh] rounded-t-3xl p-0 overflow-y-auto [&>button]:!hidden"
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -55,20 +64,25 @@ export default function ItemDetailSheet({
               ease: "easeInOut"
             }}
           >
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full bg-white/90 backdrop-blur-sm p-2 hover:bg-white transition-colors shadow-lg"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Header with price and volume */}
-        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+        {/* Header with back button, price and volume */}
+        <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+          {/* Back button - left side */}
+          <button
+            onClick={onClose}
+            className="rounded-full bg-white/90 backdrop-blur-sm p-2 hover:bg-white transition-colors shadow-lg mr-3 flex-shrink-0"
+            aria-label="Назад"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          
+          {/* Volume - middle */}
           <div className="flex-1">
             {item.volume && (
               <span className="text-gray-600">{item.volume}</span>
             )}
           </div>
+          
+          {/* Add to cart button - right side */}
           <button
             onClick={handleAddToCart}
             className="flex items-center gap-2 bg-blue-600 text-white rounded-full px-5 py-2.5 hover:bg-blue-700 transition-colors shadow-sm ml-auto"
@@ -91,6 +105,32 @@ export default function ItemDetailSheet({
             className="w-full h-64 object-cover rounded-2xl"
           />
         </div>
+
+        {/* Ингредиенты под фото */}
+        {item.ingredients && item.ingredients.length > 0 && (
+          <div className="px-6 pb-4">
+            <h3 className="text-sm font-semibold mb-2 text-gray-700">Ингредиенты</h3>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {item.ingredients.map((ingredient) => {
+                const isRemoved = removedIngredients.includes(ingredient);
+                return (
+                  <button
+                    key={ingredient}
+                    onClick={() => toggleIngredient(ingredient)}
+                    className={`flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      isRemoved
+                        ? 'bg-gray-200 text-gray-400 line-through'
+                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                    }`}
+                  >
+                    {ingredient}
+                    {isRemoved && <X className="w-3 h-3" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Similar items horizontal scroll */}
         {similarItems.length > 0 && (

@@ -5,11 +5,13 @@ import { CheckCircle2, Clock, ChefHat } from 'lucide-react';
 interface OrderConfirmationNewProps {
   orderNumber: string;
   onBackToMenu: () => void;
+  onPayment?: () => void;
 }
 
 export default function OrderConfirmationNew({
   orderNumber,
   onBackToMenu,
+  onPayment,
 }: OrderConfirmationNewProps) {
   const [estimatedTime, setEstimatedTime] = useState(15);
 
@@ -61,12 +63,14 @@ export default function OrderConfirmationNew({
 
         {/* Actions */}
         <div className="space-y-3">
-          <Button
-            onClick={onBackToMenu}
-            className="w-full h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
-          >
-            добавить что-то ещё?
-          </Button>
+          {onPayment && (
+            <Button
+              onClick={onPayment}
+              className="w-full h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+            >
+              Оплатить
+            </Button>
+          )}
           
           <Button
             onClick={onBackToMenu}

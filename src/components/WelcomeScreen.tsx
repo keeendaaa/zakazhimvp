@@ -12,7 +12,7 @@ export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
       {/* Background Image */}
       <div className="absolute inset-0">
         <ImageWithFallback
-          src="https://images.unsplash.com/photo-1698280954292-c955f882486f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwdGFibGUlMjBzZXR0aW5nfGVufDF8fHx8MTc2MDkyMjE4OXww&ixlib=rb-4.1.0&q=80&w=1080"
+          src="/images/restaurant-table.jpg"
           alt="Ресторан"
           className="w-full h-full object-cover"
         />

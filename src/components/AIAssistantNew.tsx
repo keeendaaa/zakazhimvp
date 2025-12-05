@@ -16,26 +16,184 @@ interface AIAssistantNewProps {
   onAddToCart: (item: MenuItem) => void;
 }
 
+// URL webhook n8n - определяется в зависимости от окружения
+const getN8NWebhookUrl = () => {
+  // Production вебхук (правильный домен: zakazhi.online, не zakazhi.org)
+  return 'https://n8n.zakazhi.online/webhook/939aba8e-36b3-4011-ac35-13fc37dc9712';
+  // const isDevelopment = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  // return isDevelopment
+  //   ? '/api/n8n/webhook/939aba8e-36b3-4011-ac35-13fc37dc9712'
+  //   : 'https://n8n.zakazhi.online/webhook/939aba8e-36b3-4011-ac35-13fc37dc9712';
+};
+
 export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNewProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: 'Здравствуйте! Я AI-официант ресторана. Могу рассказать о составе любого блюда, помочь с выбором с учётом аллергенов или диетических предпочтений. Чем могу помочь?',
-      timestamp: new Date(),
-    },
-  ]);
+  // Восстанавливаем сообщения из localStorage при инициализации
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const stored = localStorage.getItem('chatMessages');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Преобразуем timestamp обратно в Date объекты
+        return parsed.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+      }
+    } catch (error) {
+      console.error('[AI Assistant] Ошибка при восстановлении сообщений из localStorage:', error);
+    }
+    // Значение по умолчанию, если нет сохраненных сообщений
+    return [
+      {
+        id: '1',
+        role: 'assistant',
+        content: 'Здравствуйте! Я AI-официант ресторана. Могу рассказать о составе любого блюда, помочь с выбором с учётом аллергенов или диетических предпочтений. Чем могу помочь?',
+        timestamp: new Date(),
+      },
+    ];
+  });
+  
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [sessionId, setSessionId] = useState(() => {
+    // Создаем уникальный ID сессии или используем существующий из localStorage
+    const stored = localStorage.getItem('chatSessionId');
+    if (stored) return stored;
+    const newId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('chatSessionId', newId);
+    return newId;
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Сохраняем сообщения в localStorage при каждом изменении
+  useEffect(() => {
+    try {
+      localStorage.setItem('chatMessages', JSON.stringify(messages));
+    } catch (error) {
+      console.error('[AI Assistant] Ошибка при сохранении сообщений в localStorage:', error);
+      // Если localStorage переполнен, пытаемся очистить старые сообщения
+      try {
+        // Оставляем только последние 50 сообщений
+        const recentMessages = messages.slice(-50);
+        localStorage.setItem('chatMessages', JSON.stringify(recentMessages));
+      } catch (e) {
+        console.error('[AI Assistant] Не удалось сохранить даже урезанную версию:', e);
+      }
+    }
+  }, [messages]);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const sendToN8N = async (userMessage: string): Promise<{ message: string; sessionId?: string }> => {
+    console.log('[AI Assistant] ===== НАЧАЛО ОТПРАВКИ В N8N =====');
+    const webhookUrl = getN8NWebhookUrl();
+    console.log('[AI Assistant] URL:', webhookUrl);
+    console.log('[AI Assistant] SessionId:', sessionId);
+    
+    try {
+      // Формируем тело запроса согласно требованиям n8n workflow
+      // Ожидается: { chatInput: string, sessionId?: string }
+      const requestBody: { chatInput: string; sessionId?: string } = {
+        chatInput: userMessage.trim(),
+      };
+      
+      // Добавляем sessionId только если он есть
+      if (sessionId) {
+        requestBody.sessionId = sessionId;
+      }
+
+      console.log('[AI Assistant] Тело запроса:', JSON.stringify(requestBody, null, 2));
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('[AI Assistant] HTTP статус:', response.status, response.statusText);
+      console.log('[AI Assistant] Заголовки ответа:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[AI Assistant] ❌ ОШИБКА HTTP:', response.status);
+        console.error('[AI Assistant] Текст ошибки:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+      }
+
+      const responseText = await response.text();
+      console.log('[AI Assistant] Сырой ответ (текст):', responseText);
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log('[AI Assistant] Парсированный ответ:', JSON.stringify(data, null, 2));
+      } catch (parseError) {
+        console.error('[AI Assistant] ❌ Ошибка парсинга JSON:', parseError);
+        console.error('[AI Assistant] Сырой ответ был:', responseText);
+        throw new Error(`Failed to parse response as JSON: ${responseText}`);
+      }
+      
+      // n8n возвращает ответ в формате { message: string, sessionId?: string }
+      // согласно ноде "Форматирование ответа"
+      let responseMessage = data.message;
+      
+      console.log('[AI Assistant] Извлеченное message:', responseMessage);
+      
+      // Если message пустой или undefined, проверяем другие возможные поля
+      if (!responseMessage || responseMessage.trim() === '') {
+        console.warn('[AI Assistant] ⚠️ message пустой, проверяем другие поля...');
+        responseMessage = data.output || data.text || data.response || data.content;
+        console.log('[AI Assistant] Найденное значение:', responseMessage);
+      }
+      
+      // Если все еще нет ответа, используем fallback
+      if (!responseMessage || responseMessage.trim() === '') {
+        console.error('[AI Assistant] ❌❌❌ ПУСТОЙ ОТВЕТ ОТ N8N!');
+        console.error('[AI Assistant] Полный объект ответа:', data);
+        console.error('[AI Assistant] Используем fallback на локальную обработку');
+        return {
+          message: generateResponse(userMessage),
+          sessionId: sessionId,
+        };
+      }
+      
+      console.log('[AI Assistant] ✅ Успешный ответ от n8n:', responseMessage.substring(0, 100) + '...');
+      
+      const responseSessionId = data.sessionId || sessionId;
+      
+      // Обновляем sessionId если он вернулся из n8n
+      if (responseSessionId && responseSessionId !== sessionId) {
+        console.log('[AI Assistant] Обновляем sessionId:', responseSessionId);
+        setSessionId(responseSessionId);
+        localStorage.setItem('chatSessionId', responseSessionId);
+      }
+      
+      console.log('[AI Assistant] ===== УСПЕШНО ЗАВЕРШЕНО =====');
+      return {
+        message: responseMessage,
+        sessionId: responseSessionId,
+      };
+    } catch (error) {
+      console.error('[AI Assistant] ❌❌❌ КРИТИЧЕСКАЯ ОШИБКА!');
+      console.error('[AI Assistant] Тип ошибки:', error instanceof Error ? error.constructor.name : typeof error);
+      console.error('[AI Assistant] Сообщение ошибки:', error instanceof Error ? error.message : String(error));
+      console.error('[AI Assistant] Stack:', error instanceof Error ? error.stack : 'No stack');
+      console.error('[AI Assistant] Используем fallback на локальную обработку');
+      // Fallback на локальную обработку при ошибке
+      return {
+        message: generateResponse(userMessage),
+        sessionId: sessionId,
+      };
+    }
+  };
 
   const generateResponse = (userMessage: string): string => {
     const lowerMessage = userMessage.toLowerCase();
@@ -84,17 +242,18 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
       return `Рекомендую попробовать популярные блюда: ${popular.map(i => i.name).join(', ')}.`;
     }
 
-    // Check for composition/ingredients
-    if (lowerMessage.includes('состав') || lowerMessage.includes('ингредиент')) {
-      return 'О каком блюде хотите узнать подробнее? Назовите название, и я расскажу полный состав.';
-    }
-
     // Default response
     return 'Спасибо за вопрос! Я могу рассказать о составе блюд, калорийности, аллергенах или помочь с выбором. Что вас интересует?';
   };
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  const handleSend = async () => {
+    console.log('[AI Assistant] 🔵 handleSend вызван!');
+    console.log('[AI Assistant] inputValue:', inputValue);
+    
+    if (!inputValue.trim()) {
+      console.log('[AI Assistant] ⚠️ inputValue пустой, выходим');
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -103,23 +262,38 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
       timestamp: new Date(),
     };
 
+    console.log('[AI Assistant] Создано сообщение пользователя:', userMessage);
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI thinking
-    setTimeout(() => {
-      const response = generateResponse(inputValue);
+    console.log('[AI Assistant] Вызываем sendToN8N с:', currentInput);
+    try {
+      // Отправляем запрос в n8n
+      const response = await sendToN8N(currentInput);
+      console.log('[AI Assistant] Получен ответ от sendToN8N:', response);
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response,
+        content: response.message,
         timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Извините, произошла ошибка. Попробуйте еще раз.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -256,7 +430,7 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
           <motion.div whileTap={{ scale: 0.9 }}>
             <Button
               onClick={handleSend}
-              disabled={!inputValue.trim()}
+              disabled={!inputValue.trim() || isTyping}
               className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center flex-shrink-0 disabled:opacity-50 transition-all"
             >
               <Send className="w-5 h-5" />
