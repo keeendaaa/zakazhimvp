@@ -4,6 +4,7 @@ import { MenuItem } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Plus, Search } from 'lucide-react';
 import ItemDetailSheet from './ItemDetailSheet';
+import DishSelectionModal from './DishSelectionModal';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -28,6 +29,7 @@ interface CollectionsScreenNewProps {
 export default function CollectionsScreenNew({ menuItems, onAddToCart }: CollectionsScreenNewProps) {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDishSelectionOpen, setIsDishSelectionOpen] = useState(false);
 
   // Filter items based on search query
   const filteredItems = menuItems.filter(item => 
@@ -80,6 +82,24 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
           <Search className="absolute right-4 text-gray-400 w-5 h-5 pointer-events-none" />
         </div>
       </motion.div>
+
+      {/* Banner */}
+      {!searchQuery && (
+        <motion.div 
+          className="pl-4 pb-4 bg-gray-50"
+          style={{ marginRight: '1rem' }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <img 
+            src="/images/банер.png" 
+            alt="Баннер" 
+            className="w-full cursor-pointer"
+            onClick={() => setIsDishSelectionOpen(true)}
+          />
+        </motion.div>
+      )}
 
       <div className="px-4">
         {/* Search Results */}
@@ -329,6 +349,17 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
           onItemSelect={setSelectedItem}
         />
       )}
+
+      {/* Dish Selection Modal */}
+      <DishSelectionModal
+        isOpen={isDishSelectionOpen}
+        onClose={() => setIsDishSelectionOpen(false)}
+        onViewDishes={(filters) => {
+          // TODO: Implement filtering logic based on selected filters
+          console.log('Selected filters:', filters);
+          setIsDishSelectionOpen(false);
+        }}
+      />
     </motion.div>
   );
 }
