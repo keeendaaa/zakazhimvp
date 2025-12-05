@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MenuItem } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { Plus, ArrowLeft, X } from 'lucide-react';
+import { Plus, ArrowLeft, X, Heart } from 'lucide-react';
 import { Button } from './ui/button';
 import { Sheet, SheetContent } from './ui/sheet';
 import { motion, AnimatePresence } from 'motion/react';
@@ -25,6 +25,7 @@ export default function ItemDetailSheet({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [removedIngredients, setRemovedIngredients] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(true);
+  const [isLiked, setIsLiked] = useState(item.isFavorite || false);
 
   // Find similar items in same category
   const similarItems = menuItems
@@ -91,14 +92,44 @@ export default function ItemDetailSheet({
             )}
           </div>
           
-          {/* Add to cart button - right side */}
-          <button
-            onClick={handleAddToCart}
-            className="flex items-center gap-2 bg-blue-600 text-white rounded-full px-5 py-2.5 hover:bg-blue-700 transition-colors shadow-sm ml-auto"
-          >
-            <Plus className="w-5 h-5" />
-            <span>{item.price} ₽</span>
-          </button>
+          {/* Like and Add to cart buttons - right side */}
+          <div className="flex items-center gap-2 ml-auto">
+            {/* Like button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsLiked(!isLiked);
+              }}
+              className="rounded-full p-2 transition-all shadow-lg flex items-center justify-center flex-shrink-0"
+              style={isLiked ? {
+                backgroundColor: 'transparent',
+                borderColor: '#ef4444',
+                color: '#ef4444',
+                borderWidth: '2px',
+                borderStyle: 'solid',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+              } : {
+                backgroundColor: '#ef4444',
+                borderColor: '#ef4444',
+                color: '#ffffff',
+                borderWidth: '2px',
+                borderStyle: 'solid',
+                boxShadow: '0 10px 15px -3px rgba(239, 68, 68, 0.3), 0 4px 6px -2px rgba(239, 68, 68, 0.2)'
+              }}
+              aria-label={isLiked ? 'Убрать из избранного' : 'Добавить в избранное'}
+            >
+              <Heart className={`w-5 h-5 ${!isLiked ? 'fill-current' : ''}`} strokeWidth={2.5} />
+            </button>
+            
+            {/* Add to cart button */}
+            <button
+              onClick={handleAddToCart}
+              className="flex items-center gap-2 bg-blue-600 text-white rounded-full px-5 py-2.5 hover:bg-blue-700 transition-colors shadow-sm"
+            >
+              <Plus className="w-5 h-5" />
+              <span>{item.price} ₽</span>
+            </button>
+          </div>
         </div>
 
         {/* Main item name */}

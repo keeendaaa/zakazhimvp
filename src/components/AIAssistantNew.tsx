@@ -186,14 +186,34 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
         // Пропускаем, если уже добавлено
         if (mentionedDishesMap.has(item.id)) return;
         
-        const itemNameLower = item.name.toLowerCase();
-        // Проверяем точное вхождение названия в текст
-        // Используем границы слов для более точного поиска
-        const nameRegex = new RegExp(`\\b${itemNameLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-        if (nameRegex.test(responseMessage)) {
+        const itemNameLower = item.name.toLowerCase().trim();
+        // Проверяем несколько вариантов совпадения:
+        // 1. Точное совпадение с границами слов
+        // 2. Название блюда входит в упоминание (например, "Греческий" в "Греческий салат")
+        // 3. Ключевые слова из названия присутствуют в ответе (слова длиннее 2 символов)
+        const escapedName = itemNameLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const exactMatch = new RegExp(`\\b${escapedName}\\b`, 'i');
+        const partialMatch = lowerResponse.includes(itemNameLower);
+        
+        // Проверяем ключевые слова из названия (слова длиннее 2 символов, но не слишком короткие общие слова)
+        const nameWords = itemNameLower.split(/[\s\-.,;:]+/).filter(word => {
+          const trimmed = word.trim();
+          return trimmed.length > 2 && !['для', 'из', 'с', 'и', 'или', 'на', 'в', 'к', 'по'].includes(trimmed);
+        });
+        const hasKeyWords = nameWords.length > 0 && nameWords.some(word => {
+          const trimmed = word.trim();
+          if (trimmed.length < 3) return false;
+          const wordRegex = new RegExp(`\\b${trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+          return wordRegex.test(responseMessage);
+        });
+        
+        if (exactMatch.test(responseMessage) || partialMatch || hasKeyWords) {
+          console.log('[AI Assistant] Найдено блюдо:', item.name, 'по совпадению:', { exactMatch: exactMatch.test(responseMessage), partialMatch, hasKeyWords, nameWords });
           mentionedDishesMap.set(item.id, item);
         }
       });
+      
+      console.log('[AI Assistant] Найдено блюд:', mentionedDishesMap.size, Array.from(mentionedDishesMap.values()).map(i => i.name));
       
       // Если найдены упоминания блюд, используем их как рекомендуемые (максимум 5)
       if (mentionedDishesMap.size > 0) {
@@ -202,9 +222,40 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
           new Map(Array.from(mentionedDishesMap.values()).map(item => [item.id, item])).values()
         ).slice(0, 5);
       } else {
-        // Если в ответе есть ключевые слова о рекомендациях, ищем популярные блюда
-        if (lowerResponse.includes('рекоменд') || lowerResponse.includes('совет') || 
-            lowerResponse.includes('попробуйте') || lowerResponse.includes('попробовать')) {
+        // Fallback: пытаемся извлечь названия из нумерованного списка (1., 2., 3. и т.д.)
+        const numberedListRegex = /(\d+)\.\s*([^—\n·]+?)(?:\s*—|·|$)/g;
+        const extractedNames: string[] = [];
+        let match;
+        while ((match = numberedListRegex.exec(responseMessage)) !== null && extractedNames.length < 5) {
+          const dishName = match[2].trim().split('—')[0].trim().split('·')[0].trim();
+          if (dishName.length > 2) {
+            extractedNames.push(dishName);
+          }
+        }
+        
+        // Ищем блюда по извлеченным названиям
+        if (extractedNames.length > 0) {
+          const foundByNames: MenuItem[] = [];
+          extractedNames.forEach(name => {
+            const nameLower = name.toLowerCase();
+            const found = menuItems.find(item => {
+              const itemNameLower = item.name.toLowerCase();
+              return itemNameLower.includes(nameLower) || nameLower.includes(itemNameLower) ||
+                     itemNameLower.split(/\s+/).some(word => nameLower.includes(word) && word.length > 3);
+            });
+            if (found && !foundByNames.find(i => i.id === found.id)) {
+              foundByNames.push(found);
+            }
+          });
+          if (foundByNames.length > 0) {
+            suggestedItems = foundByNames.slice(0, 5);
+            console.log('[AI Assistant] Найдено блюд через извлечение из списка:', foundByNames.map(i => i.name));
+          }
+        }
+        
+        // Если все еще нет блюд, и в ответе есть ключевые слова о рекомендациях, ищем популярные блюда
+        if (!suggestedItems && (lowerResponse.includes('рекоменд') || lowerResponse.includes('совет') || 
+            lowerResponse.includes('попробуйте') || lowerResponse.includes('попробовать'))) {
           suggestedItems = menuItems.filter(item => item.isPopular).slice(0, 3);
         }
       }
@@ -377,6 +428,8 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
         timestamp: new Date(),
         suggestedItems: uniqueSuggestedItems,
       };
+
+      console.log('[AI Assistant] Создано сообщение ассистента с suggestedItems:', uniqueSuggestedItems?.length || 0, uniqueSuggestedItems?.map(i => i.name) || []);
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
