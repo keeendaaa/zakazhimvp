@@ -1,14 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from './ui/button';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, Plus } from 'lucide-react';
 import { MenuItem } from '../types';
+import { ImageWithFallback } from './figma/ImageWithFallback';
+import ItemDetailSheet from './ItemDetailSheet';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  suggestedItems?: MenuItem[];
 }
 
 interface AIAssistantNewProps {
@@ -27,6 +30,7 @@ const getN8NWebhookUrl = () => {
 };
 
 export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNewProps) {
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   // Восстанавливаем сообщения из localStorage при инициализации
   const [messages, setMessages] = useState<Message[]>(() => {
     try {
@@ -90,7 +94,7 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
     scrollToBottom();
   }, [messages]);
 
-  const sendToN8N = async (userMessage: string): Promise<{ message: string; sessionId?: string }> => {
+  const sendToN8N = async (userMessage: string): Promise<{ message: string; suggestedItems?: MenuItem[]; sessionId?: string }> => {
     console.log('[AI Assistant] ===== НАЧАЛО ОТПРАВКИ В N8N =====');
     const webhookUrl = getN8NWebhookUrl();
     console.log('[AI Assistant] URL:', webhookUrl);
@@ -159,10 +163,50 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
         console.error('[AI Assistant] ❌❌❌ ПУСТОЙ ОТВЕТ ОТ N8N!');
         console.error('[AI Assistant] Полный объект ответа:', data);
         console.error('[AI Assistant] Используем fallback на локальную обработку');
+        const fallbackResponse = generateResponse(userMessage);
         return {
-          message: generateResponse(userMessage),
+          message: fallbackResponse.message,
+          suggestedItems: fallbackResponse.suggestedItems,
           sessionId: sessionId,
         };
+      }
+      
+      // Пытаемся извлечь рекомендуемые блюда из ответа n8n
+      let suggestedItems: MenuItem[] | undefined;
+      
+      // Проверяем, есть ли в ответе упоминания названий блюд
+      // Используем Map для избежания дублирования по id (более надежно чем Set)
+      const mentionedDishesMap = new Map<string, MenuItem>();
+      const lowerResponse = responseMessage.toLowerCase();
+      
+      // Сортируем блюда по длине названия (от длинных к коротким), чтобы избежать частичных совпадений
+      const sortedItems = [...menuItems].sort((a, b) => b.name.length - a.name.length);
+      
+      sortedItems.forEach(item => {
+        // Пропускаем, если уже добавлено
+        if (mentionedDishesMap.has(item.id)) return;
+        
+        const itemNameLower = item.name.toLowerCase();
+        // Проверяем точное вхождение названия в текст
+        // Используем границы слов для более точного поиска
+        const nameRegex = new RegExp(`\\b${itemNameLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        if (nameRegex.test(responseMessage)) {
+          mentionedDishesMap.set(item.id, item);
+        }
+      });
+      
+      // Если найдены упоминания блюд, используем их как рекомендуемые (максимум 5)
+      if (mentionedDishesMap.size > 0) {
+        // Преобразуем Map в массив и убираем дубликаты еще раз на всякий случай
+        suggestedItems = Array.from(
+          new Map(Array.from(mentionedDishesMap.values()).map(item => [item.id, item])).values()
+        ).slice(0, 5);
+      } else {
+        // Если в ответе есть ключевые слова о рекомендациях, ищем популярные блюда
+        if (lowerResponse.includes('рекоменд') || lowerResponse.includes('совет') || 
+            lowerResponse.includes('попробуйте') || lowerResponse.includes('попробовать')) {
+          suggestedItems = menuItems.filter(item => item.isPopular).slice(0, 3);
+        }
       }
       
       console.log('[AI Assistant] ✅ Успешный ответ от n8n:', responseMessage.substring(0, 100) + '...');
@@ -179,6 +223,7 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
       console.log('[AI Assistant] ===== УСПЕШНО ЗАВЕРШЕНО =====');
       return {
         message: responseMessage,
+        suggestedItems: suggestedItems,
         sessionId: responseSessionId,
       };
     } catch (error) {
@@ -188,35 +233,52 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
       console.error('[AI Assistant] Stack:', error instanceof Error ? error.stack : 'No stack');
       console.error('[AI Assistant] Используем fallback на локальную обработку');
       // Fallback на локальную обработку при ошибке
+      const fallbackResponse = generateResponse(userMessage);
       return {
-        message: generateResponse(userMessage),
+        message: fallbackResponse.message,
+        suggestedItems: fallbackResponse.suggestedItems,
         sessionId: sessionId,
       };
     }
   };
 
-  const generateResponse = (userMessage: string): string => {
+  const generateResponse = (userMessage: string): { message: string; suggestedItems?: MenuItem[] } => {
     const lowerMessage = userMessage.toLowerCase();
 
     // Check for allergen questions
     if (lowerMessage.includes('аллерг') || lowerMessage.includes('непереносим')) {
       if (lowerMessage.includes('глютен')) {
-        const items = menuItems.filter(item => !item.allergens?.includes('глютен'));
-        return `Без глютена у нас: ${items.map(i => i.name).slice(0, 3).join(', ')}. Могу подробнее рассказать о любом блюде!`;
+        const items = menuItems.filter(item => !item.allergens?.includes('глютен')).slice(0, 3);
+        // Убираем дубликаты по id
+        const uniqueItems = Array.from(new Map(items.map(item => [item.id, item])).values());
+        return {
+          message: `Без глютена у нас: ${uniqueItems.map(i => i.name).join(', ')}. Могу подробнее рассказать о любом блюде!`,
+          suggestedItems: uniqueItems,
+        };
       }
       if (lowerMessage.includes('молоч') || lowerMessage.includes('лактоз')) {
-        const items = menuItems.filter(item => !item.allergens?.includes('молочные продукты'));
-        return `Без молочных продуктов: ${items.map(i => i.name).slice(0, 3).join(', ')}.`;
+        const items = menuItems.filter(item => !item.allergens?.includes('молочные продукты')).slice(0, 3);
+        // Убираем дубликаты по id
+        const uniqueItems = Array.from(new Map(items.map(item => [item.id, item])).values());
+        return {
+          message: `Без молочных продуктов: ${uniqueItems.map(i => i.name).join(', ')}.`,
+          suggestedItems: uniqueItems,
+        };
       }
-      return 'Уточните, пожалуйста, на какой продукт у вас аллергия? Я подберу подходящие блюда.';
+      return { message: 'Уточните, пожалуйста, на какой продукт у вас аллергия? Я подберу подходящие блюда.' };
     }
 
     // Check for vegetarian/vegan
     if (lowerMessage.includes('вегетариан') || lowerMessage.includes('веган')) {
       const vegItems = menuItems.filter(item => 
         item.tags.includes('вегетарианское') || !item.tags.includes('с мясом')
-      );
-      return `Вегетарианские блюда: ${vegItems.map(i => i.name).slice(0, 4).join(', ')}.`;
+      ).slice(0, 4);
+      // Убираем дубликаты по id
+      const uniqueItems = Array.from(new Map(vegItems.map(item => [item.id, item])).values());
+      return {
+        message: `Вегетарианские блюда: ${uniqueItems.map(i => i.name).join(', ')}.`,
+        suggestedItems: uniqueItems,
+      };
     }
 
     // Check for specific dishes
@@ -225,7 +287,10 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
     );
     
     if (matchedDish) {
-      return `${matchedDish.name}: ${matchedDish.description}. Вес: ${matchedDish.weight}. Калорийность: ${matchedDish.calories} ккал. Состав: ${matchedDish.ingredients.join(', ')}. ${matchedDish.allergens && matchedDish.allergens.length > 0 ? `Содержит аллергены: ${matchedDish.allergens.join(', ')}.` : 'Не содержит основных аллергенов.'}`;
+      return {
+        message: `${matchedDish.name}: ${matchedDish.description}. Вес: ${matchedDish.weight}. Калорийность: ${matchedDish.calories} ккал. Состав: ${matchedDish.ingredients.join(', ')}. ${matchedDish.allergens && matchedDish.allergens.length > 0 ? `Содержит аллергены: ${matchedDish.allergens.join(', ')}.` : 'Не содержит основных аллергенов.'}`,
+        suggestedItems: [matchedDish],
+      };
     }
 
     // Check for calories/diet
@@ -233,17 +298,27 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
       const lightItems = menuItems
         .filter(item => item.calories && item.calories < 400)
         .slice(0, 3);
-      return `Лёгкие блюда до 400 ккал: ${lightItems.map(i => `${i.name} (${i.calories} ккал)`).join(', ')}.`;
+      // Убираем дубликаты по id
+      const uniqueItems = Array.from(new Map(lightItems.map(item => [item.id, item])).values());
+      return {
+        message: `Лёгкие блюда до 400 ккал: ${uniqueItems.map(i => `${i.name} (${i.calories} ккал)`).join(', ')}.`,
+        suggestedItems: uniqueItems,
+      };
     }
 
     // Check for recommendations
     if (lowerMessage.includes('посовет') || lowerMessage.includes('рекоменд') || lowerMessage.includes('что выбрать')) {
       const popular = menuItems.filter(item => item.isPopular).slice(0, 3);
-      return `Рекомендую попробовать популярные блюда: ${popular.map(i => i.name).join(', ')}.`;
+      // Убираем дубликаты по id
+      const uniqueItems = Array.from(new Map(popular.map(item => [item.id, item])).values());
+      return {
+        message: `Рекомендую попробовать популярные блюда: ${uniqueItems.map(i => i.name).join(', ')}.`,
+        suggestedItems: uniqueItems,
+      };
     }
 
     // Default response
-    return 'Спасибо за вопрос! Я могу рассказать о составе блюд, калорийности, аллергенах или помочь с выбором. Что вас интересует?';
+    return { message: 'Спасибо за вопрос! Я могу рассказать о составе блюд, калорийности, аллергенах или помочь с выбором. Что вас интересует?' };
   };
 
   const handleSend = async () => {
@@ -274,11 +349,33 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
       const response = await sendToN8N(currentInput);
       console.log('[AI Assistant] Получен ответ от sendToN8N:', response);
       
+      // Удаляем дубликаты из suggestedItems по id и названию (более строгая проверка)
+      const uniqueSuggestedItems = response.suggestedItems 
+        ? (() => {
+            const seenIds = new Set<string>();
+            const seenNames = new Set<string>();
+            const unique: MenuItem[] = [];
+            for (const item of response.suggestedItems || []) {
+              const idKey = item.id;
+              const nameKey = item.name.toLowerCase().trim();
+              
+              // Пропускаем если уже видели этот id или название
+              if (!seenIds.has(idKey) && !seenNames.has(nameKey)) {
+                seenIds.add(idKey);
+                seenNames.add(nameKey);
+                unique.push(item);
+              }
+            }
+            return unique;
+          })()
+        : undefined;
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: response.message,
         timestamp: new Date(),
+        suggestedItems: uniqueSuggestedItems,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -349,13 +446,75 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
             </div>
 
             <div
-              className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+              className={`max-w-[75%] w-full rounded-2xl px-4 py-3 ${
                 message.role === 'user'
                   ? 'bg-blue-600 text-white'
                   : 'bg-white shadow-sm'
               }`}
             >
               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              
+              {/* Suggested dishes cards */}
+              {message.role === 'assistant' && message.suggestedItems && message.suggestedItems.length > 0 && (
+                <div className="mt-4 -mx-2">
+                  <div className="text-xs font-semibold text-gray-600 mb-2 px-2">Рекомендуемые блюда:</div>
+                  <div className="space-y-2">
+                    {(() => {
+                      // Убираем дубликаты по id и названию перед отображением
+                      const seenIds = new Set<string>();
+                      const seenNames = new Set<string>();
+                      const uniqueItems = message.suggestedItems!.filter(item => {
+                        // Проверяем и по id, и по названию (на случай если id одинаковые)
+                        const idKey = item.id;
+                        const nameKey = item.name.toLowerCase().trim();
+                        
+                        if (seenIds.has(idKey) || seenNames.has(nameKey)) {
+                          return false;
+                        }
+                        
+                        seenIds.add(idKey);
+                        seenNames.add(nameKey);
+                        return true;
+                      });
+                      return uniqueItems.map((item) => (
+                        <motion.div
+                          key={item.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          onClick={() => setSelectedItem(item)}
+                          className="bg-gray-50 rounded-xl overflow-hidden hover:bg-gray-100 transition-colors cursor-pointer active:scale-[0.98] flex"
+                        >
+                          <ImageWithFallback
+                            src={item.image}
+                            alt={item.name}
+                            className="w-20 h-full object-cover flex-shrink-0"
+                          />
+                          <div className="flex-1 flex flex-col justify-center pt-2.5 pr-2.5 pb-2.5 min-w-0" style={{ paddingLeft: '1rem' }}>
+                            <h4 className="text-sm sm:text-base font-medium text-gray-900 break-words line-clamp-2 mb-2">
+                              {item.name}
+                            </h4>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs sm:text-sm font-semibold text-blue-600">
+                                {item.price} ₽
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onAddToCart(item);
+                                }}
+                                className="p-0.5 sm:p-1 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors flex-shrink-0"
+                                aria-label={`Добавить ${item.name} в корзину`}
+                              >
+                                <Plus size={10} className="sm:w-3 sm:h-3" style={{ width: '18px', height: '18px' }} />
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ));
+                    })()}
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         ))}
@@ -385,6 +544,17 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
 
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Item Detail Sheet */}
+      {selectedItem && (
+        <ItemDetailSheet
+          item={selectedItem}
+          menuItems={menuItems}
+          onClose={() => setSelectedItem(null)}
+          onAddToCart={onAddToCart}
+          onItemSelect={setSelectedItem}
+        />
+      )}
 
       {/* Quick suggestions */}
       <div className="px-4 pb-3">

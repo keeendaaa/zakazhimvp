@@ -412,14 +412,23 @@ export default function MenuScreenNew({ menuItems, onAddToCart }: MenuScreenNewP
             <SheetHeader>
               <div className="flex items-center justify-between mb-4">
                 <SheetTitle>Фильтры</SheetTitle>
-                {hasActiveFilters() && (
+                <div className="flex items-center gap-3">
+                  {hasActiveFilters() && (
+                    <button
+                      onClick={clearFilters}
+                      className="text-sm text-blue-600 hover:text-blue-700"
+                    >
+                      Сбросить все
+                    </button>
+                  )}
                   <button
-                    onClick={clearFilters}
-                    className="text-sm text-blue-600 hover:text-blue-700"
+                    onClick={() => setShowFilters(false)}
+                    className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    aria-label="Закрыть"
                   >
-                    Сбросить все
+                    <X className="w-5 h-5 text-gray-600" />
                   </button>
-                )}
+                </div>
               </div>
             </SheetHeader>
           </div>

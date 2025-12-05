@@ -24,15 +24,24 @@ export default function ItemDetailSheet({
   const [showComposition, setShowComposition] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [removedIngredients, setRemovedIngredients] = useState<string[]>([]);
+  const [isOpen, setIsOpen] = useState(true);
 
   // Find similar items in same category
   const similarItems = menuItems
     .filter(i => i.category === item.category && i.id !== item.id)
     .slice(0, 2);
 
+  const handleClose = () => {
+    setIsOpen(false);
+    // Даем время для анимации закрытия перед вызовом onClose
+    setTimeout(() => {
+      onClose();
+    }, 300); // Длительность анимации закрытия
+  };
+
   const handleAddToCart = () => {
     onAddToCart(item, removedIngredients.length > 0 ? removedIngredients : undefined);
-    onClose();
+    handleClose();
   };
 
   const toggleIngredient = (ingredient: string) => {
@@ -44,7 +53,7 @@ export default function ItemDetailSheet({
   };
 
   return (
-    <Sheet open={true} onOpenChange={onClose}>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <SheetContent 
         side="bottom" 
         className="h-[90vh] rounded-t-3xl p-0 overflow-y-auto [&>button]:!hidden"
@@ -68,7 +77,7 @@ export default function ItemDetailSheet({
         <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-6 py-4 flex items-center justify-between">
           {/* Back button - left side */}
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="rounded-full bg-white/90 backdrop-blur-sm p-2 hover:bg-white transition-colors shadow-lg mr-3 flex-shrink-0"
             aria-label="Назад"
           >
@@ -155,7 +164,7 @@ export default function ItemDetailSheet({
                         setIsTransitioning(false);
                       }, 150);
                     } else {
-                      onClose();
+                      handleClose();
                     }
                   }}
                   className="flex-shrink-0 w-72 bg-gray-50 rounded-2xl p-4 flex gap-3 cursor-pointer hover:bg-gray-100 transition-colors"
