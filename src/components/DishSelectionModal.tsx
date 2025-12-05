@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Sheet, SheetContent } from './ui/sheet';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { MenuItem } from '../types';
 
 interface DishSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onViewDishes: (filters: SelectedFilters) => void;
+  onViewDishes: (filters: SelectedFilters) => Promise<void>;
+  menuItems: MenuItem[];
 }
 
 export interface SelectedFilters {
@@ -57,6 +59,7 @@ export default function DishSelectionModal({
   isOpen,
   onClose,
   onViewDishes,
+  menuItems,
 }: DishSelectionModalProps) {
   const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
     situation: [],
@@ -70,7 +73,7 @@ export default function DishSelectionModal({
     value: string
   ) => {
     setSelectedFilters((prev) => {
-      const current = prev[category];
+      const current = prev[category] as string[];
       const newValue = current.includes(value)
         ? current.filter((v) => v !== value)
         : [...current, value];
@@ -87,14 +90,16 @@ export default function DishSelectionModal({
     });
   };
 
-  const handleViewDishes = () => {
-    onViewDishes(selectedFilters);
+  const handleViewDishes = async () => {
+    await onViewDishes(selectedFilters);
     onClose();
   };
 
-  const hasSelectedFilters = Object.values(selectedFilters).some(
-    (arr: string[]) => arr.length > 0
-  );
+  const hasSelectedFilters = 
+    selectedFilters.situation.length > 0 ||
+    selectedFilters.mood.length > 0 ||
+    selectedFilters.taste.length > 0 ||
+    selectedFilters.cuisine.length > 0;
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>

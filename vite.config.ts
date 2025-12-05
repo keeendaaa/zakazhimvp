@@ -52,6 +52,28 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Vendor chunks
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-motion': ['motion/react'],
+            'vendor-radix': [
+              '@radix-ui/react-dialog',
+              '@radix-ui/react-sheet',
+              '@radix-ui/react-select',
+              '@radix-ui/react-popover',
+            ],
+            'vendor-ui': ['lucide-react', 'sonner'],
+            // Feature chunks
+            'feature-collections': ['./src/components/CollectionsScreenNew'],
+            'feature-menu': ['./src/components/MenuScreenNew'],
+            'feature-ai': ['./src/components/AIAssistantNew'],
+            'feature-cart': ['./src/components/CartScreenNew'],
+          },
+        },
+      },
+      chunkSizeWarningLimit: 600,
     },
     server: {
       port: 3000,

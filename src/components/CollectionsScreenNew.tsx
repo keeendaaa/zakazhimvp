@@ -4,7 +4,9 @@ import { MenuItem } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Plus, Search } from 'lucide-react';
 import ItemDetailSheet from './ItemDetailSheet';
-import DishSelectionModal from './DishSelectionModal';
+import DishSelectionModal, { SelectedFilters } from './DishSelectionModal';
+import PersonalRecommendations from './PersonalRecommendations';
+import { getRecommendations, saveOnboardingAnswers, loadOnboardingAnswers } from '../utils/recommendations';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -30,6 +32,8 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDishSelectionOpen, setIsDishSelectionOpen] = useState(false);
+  const [recommendations, setRecommendations] = useState<MenuItem[] | null>(null);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
 
   // Filter items based on search query
   const filteredItems = menuItems.filter(item => 
@@ -354,12 +358,50 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
       <DishSelectionModal
         isOpen={isDishSelectionOpen}
         onClose={() => setIsDishSelectionOpen(false)}
-        onViewDishes={(filters) => {
-          // TODO: Implement filtering logic based on selected filters
-          console.log('Selected filters:', filters);
+        onViewDishes={async (filters) => {
           setIsDishSelectionOpen(false);
+          setIsLoadingRecommendations(true);
+          
+          try {
+            // Сохраняем ответы онбординга
+            saveOnboardingAnswers(filters);
+            
+            // Используем локальный алгоритм рекомендаций на основе тегов
+            const recommendedItems = getRecommendations(menuItems, filters);
+            
+            setRecommendations(recommendedItems);
+          } catch (error) {
+            console.error('Ошибка при получении рекомендаций:', error);
+            // Fallback: показываем популярные блюда
+            setRecommendations(menuItems.filter(item => item.isPopular).slice(0, 8));
+          } finally {
+            setIsLoadingRecommendations(false);
+          }
         }}
+        menuItems={menuItems}
       />
+
+      {/* Loading Screen */}
+      {isLoadingRecommendations && (
+        <div className="fixed inset-0 z-50 bg-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Загрузка рекомендаций...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Personal Recommendations Screen */}
+      {recommendations && !isLoadingRecommendations && (
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+          <PersonalRecommendations
+            recommendations={recommendations}
+            onItemSelect={setSelectedItem}
+            onClose={() => setRecommendations(null)}
+          />
+        </div>
+      )}
+
     </motion.div>
   );
 }

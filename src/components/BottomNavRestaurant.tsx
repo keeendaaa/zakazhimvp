@@ -20,8 +20,8 @@ export default function BottomNavRestaurant({
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 safe-area-bottom">
-      <div className="flex items-center justify-around px-2 py-2">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom shadow-lg">
+      <div className="flex items-center justify-around px-1 py-1 sm:px-2 sm:py-2">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeView === tab.id;
@@ -30,19 +30,23 @@ export default function BottomNavRestaurant({
             <button
               key={tab.id}
               onClick={() => onViewChange(tab.id)}
-              className={`flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg transition-colors relative min-w-[60px] ${
-                isActive ? 'text-gray-900' : 'text-gray-400'
+              className={`flex flex-col items-center justify-center gap-0.5 sm:gap-1 px-1 py-1.5 sm:px-2 sm:py-2 rounded-lg transition-all relative min-w-[64px] sm:min-w-[70px] active:scale-95 ${
+                isActive 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-gray-500 hover:text-gray-700 active:bg-gray-100'
               }`}
             >
               <div className="relative">
-                <Icon className="w-6 h-6" />
+                <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                 {tab.id === 'cart' && cartItemsCount > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-4 min-w-4 flex items-center justify-center p-0 px-1 bg-blue-600 text-white text-xs">
-                    {cartItemsCount}
+                  <Badge className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 h-5 min-w-5 sm:h-5 sm:min-w-5 flex items-center justify-center p-0 px-1 bg-blue-600 text-white text-[10px] sm:text-xs font-semibold">
+                    {cartItemsCount > 99 ? '99+' : cartItemsCount}
                   </Badge>
                 )}
               </div>
-              <span className="text-xs">{tab.label}</span>
+              <span className="text-[10px] sm:text-xs font-medium leading-tight text-center px-1">
+                {tab.label}
+              </span>
             </button>
           );
         })}

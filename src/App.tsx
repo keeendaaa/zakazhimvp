@@ -1,17 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { MenuItem, CartItem } from './types';
 import { restaurantMenu } from './data/restaurant-menu';
-import CollectionsScreenNew from './components/CollectionsScreenNew';
-import MenuScreenNew from './components/MenuScreenNew';
-import AIAssistantNew from './components/AIAssistantNew';
-import CartScreenNew from './components/CartScreenNew';
-import OrderConfirmationNew from './components/OrderConfirmationNew';
-import PaymentScreen from './components/PaymentScreen';
-import CheckoutConfirmation from './components/CheckoutConfirmation';
 import BottomNavRestaurant from './components/BottomNavRestaurant';
 import CallWaiterButton from './components/CallWaiterButton';
 import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
+
+// Lazy load large components for code splitting
+const CollectionsScreenNew = lazy(() => import('./components/CollectionsScreenNew'));
+const MenuScreenNew = lazy(() => import('./components/MenuScreenNew'));
+const AIAssistantNew = lazy(() => import('./components/AIAssistantNew'));
+const CartScreenNew = lazy(() => import('./components/CartScreenNew'));
+const OrderConfirmationNew = lazy(() => import('./components/OrderConfirmationNew'));
+const PaymentScreen = lazy(() => import('./components/PaymentScreen'));
+const CheckoutConfirmation = lazy(() => import('./components/CheckoutConfirmation'));
+
+// Loading component
+const LoadingScreen = () => (
+  <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="text-center">
+      <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-gray-600">Загрузка...</p>
+    </div>
+  </div>
+);
 
 export default function App() {
   const [activeView, setActiveView] = useState<string>('collections');
@@ -206,10 +218,12 @@ export default function App() {
   if (paymentCompleted) {
     return (
       <>
-        <PaymentScreen
-          orderNumber={orderNumber}
-          onBackToMenu={handleBackToMenu}
-        />
+        <Suspense fallback={<LoadingScreen />}>
+          <PaymentScreen
+            orderNumber={orderNumber}
+            onBackToMenu={handleBackToMenu}
+          />
+        </Suspense>
         <Toaster position="top-center" richColors />
       </>
     );
@@ -219,11 +233,13 @@ export default function App() {
   if (orderPlaced) {
     return (
       <>
-        <OrderConfirmationNew
-          orderNumber={orderNumber}
-          onBackToMenu={handleBackToMenu}
-          onPayment={handlePayment}
-        />
+        <Suspense fallback={<LoadingScreen />}>
+          <OrderConfirmationNew
+            orderNumber={orderNumber}
+            onBackToMenu={handleBackToMenu}
+            onPayment={handlePayment}
+          />
+        </Suspense>
         <Toaster position="top-center" richColors />
       </>
     );
@@ -231,36 +247,38 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {activeView === 'collections' && (
-        <CollectionsScreenNew menuItems={restaurantMenu} onAddToCart={handleAddToCart} />
-      )}
+      <Suspense fallback={<LoadingScreen />}>
+        {activeView === 'collections' && (
+          <CollectionsScreenNew menuItems={restaurantMenu} onAddToCart={handleAddToCart} />
+        )}
 
-      {activeView === 'menu' && (
-        <MenuScreenNew
-          menuItems={restaurantMenu}
-          onAddToCart={handleAddToCart}
-        />
-      )}
+        {activeView === 'menu' && (
+          <MenuScreenNew
+            menuItems={restaurantMenu}
+            onAddToCart={handleAddToCart}
+          />
+        )}
 
-      {activeView === 'assistant' && (
-        <AIAssistantNew
-          menuItems={restaurantMenu}
-          onAddToCart={handleAddToCart}
-        />
-      )}
+        {activeView === 'assistant' && (
+          <AIAssistantNew
+            menuItems={restaurantMenu}
+            onAddToCart={handleAddToCart}
+          />
+        )}
 
-      {activeView === 'cart' && (
-        <CartScreenNew
-          cartItems={cart}
-          onUpdateQuantity={handleUpdateQuantity}
-          onRemoveItem={handleRemoveItem}
-          onCheckout={handleCheckout}
-          onPayment={handlePayment}
-          lastOrder={lastOrder}
-          menuItems={restaurantMenu}
-          onAddToCart={handleAddToCart}
-        />
-      )}
+        {activeView === 'cart' && (
+          <CartScreenNew
+            cartItems={cart}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemoveItem={handleRemoveItem}
+            onCheckout={handleCheckout}
+            onPayment={handlePayment}
+            lastOrder={lastOrder}
+            menuItems={restaurantMenu}
+            onAddToCart={handleAddToCart}
+          />
+        )}
+      </Suspense>
 
       <BottomNavRestaurant
         activeView={activeView}
@@ -271,15 +289,17 @@ export default function App() {
       <CallWaiterButton onCall={handleCallWaiter} />
 
       {showCheckoutConfirmation && (
-        <CheckoutConfirmation
-          totalAmount={totalAmount}
-          menuItems={restaurantMenu}
-          cartItems={cart}
-          onConfirm={handleConfirmCheckout}
-          onCancel={handleCancelCheckout}
-          onAddToCart={handleAddToCart}
-          onUpdateQuantity={handleUpdateQuantity}
-        />
+        <Suspense fallback={<LoadingScreen />}>
+          <CheckoutConfirmation
+            totalAmount={totalAmount}
+            menuItems={restaurantMenu}
+            cartItems={cart}
+            onConfirm={handleConfirmCheckout}
+            onCancel={handleCancelCheckout}
+            onAddToCart={handleAddToCart}
+            onUpdateQuantity={handleUpdateQuantity}
+          />
+        </Suspense>
       )}
 
       <Toaster position="top-center" richColors />
