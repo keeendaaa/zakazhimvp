@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from './ui/button';
 import { Send, Bot, User, Plus } from 'lucide-react';
@@ -21,12 +21,14 @@ interface AIAssistantNewProps {
 
 // URL webhook n8n - определяется в зависимости от окружения
 const getN8NWebhookUrl = () => {
-  // Production вебхук (правильный домен: zakazhi.online, не zakazhi.org)
+  // Production вебхук
+  // ВАЖНО: Если production webhook возвращает пустой ответ, временно можно использовать тестовый:
+  // return 'https://n8n.zakazhi.online/webhook-test/939aba8e-36b3-4011-ac35-13fc37dc9712';
   return 'https://n8n.zakazhi.online/webhook/939aba8e-36b3-4011-ac35-13fc37dc9712';
   // const isDevelopment = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
   // return isDevelopment
   //   ? '/api/n8n/webhook/939aba8e-36b3-4011-ac35-13fc37dc9712'
-  //   : 'https://n8n.zakazhi.online/webhook/939aba8e-36b3-4011-ac35-13fc37dc9712';
+  //   : 'https://n8n.zakazhi.org/webhook/939aba8e-36b3-4011-ac35-13fc37dc9712';
 };
 
 export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNewProps) {
@@ -102,17 +104,23 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
     
     try {
       // Формируем тело запроса согласно требованиям n8n workflow
-      // Ожидается: { chatInput: string, sessionId?: string }
-      const requestBody: { chatInput: string; sessionId?: string } = {
+      // n8n Chat Trigger требует sessionId всегда, даже для нового сеанса
+      // Ожидается: { chatInput: string, sessionId: string }
+      const currentSessionId = sessionId || `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      const requestBody: { chatInput: string; sessionId: string } = {
         chatInput: userMessage.trim(),
+        sessionId: currentSessionId,
       };
       
-      // Добавляем sessionId только если он есть
-      if (sessionId) {
-        requestBody.sessionId = sessionId;
+      // Сохраняем sessionId если его еще не было
+      if (!sessionId) {
+        setSessionId(currentSessionId);
+        localStorage.setItem('chatSessionId', currentSessionId);
       }
 
       console.log('[AI Assistant] Тело запроса:', JSON.stringify(requestBody, null, 2));
+      console.log('[AI Assistant] URL запроса:', webhookUrl);
 
       const response = await fetch(webhookUrl, {
         method: 'POST',
@@ -124,6 +132,10 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
 
       console.log('[AI Assistant] HTTP статус:', response.status, response.statusText);
       console.log('[AI Assistant] Заголовки ответа:', Object.fromEntries(response.headers.entries()));
+      
+      // Проверяем Content-Length из заголовков
+      const contentLength = response.headers.get('content-length');
+      console.log('[AI Assistant] Content-Length из заголовков:', contentLength);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -134,6 +146,20 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
 
       const responseText = await response.text();
       console.log('[AI Assistant] Сырой ответ (текст):', responseText);
+      console.log('[AI Assistant] Длина ответа:', responseText.length);
+      
+      // Проверяем, что ответ не пустой
+      if (!responseText || responseText.trim() === '') {
+        console.error('[AI Assistant] ❌❌❌ ПУСТОЙ ОТВЕТ ОТ N8N!');
+        console.error('[AI Assistant] HTTP статус был:', response.status);
+        console.error('[AI Assistant] Используем fallback на локальную обработку');
+        const fallbackResponse = generateResponse(userMessage);
+        return {
+          message: fallbackResponse.message,
+          suggestedItems: fallbackResponse.suggestedItems,
+          sessionId: sessionId,
+        };
+      }
       
       let data;
       try {
@@ -142,7 +168,13 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
       } catch (parseError) {
         console.error('[AI Assistant] ❌ Ошибка парсинга JSON:', parseError);
         console.error('[AI Assistant] Сырой ответ был:', responseText);
-        throw new Error(`Failed to parse response as JSON: ${responseText}`);
+        console.error('[AI Assistant] Используем fallback на локальную обработку');
+        const fallbackResponse = generateResponse(userMessage);
+        return {
+          message: fallbackResponse.message,
+          suggestedItems: fallbackResponse.suggestedItems,
+          sessionId: sessionId,
+        };
       }
       
       // n8n возвращает ответ в формате { message: string, sessionId?: string }

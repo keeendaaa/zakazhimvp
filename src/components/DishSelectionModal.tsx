@@ -28,23 +28,26 @@ const SITUATIONS = [
   'Неспешный ужин',
 ];
 
+// Используем базовый путь из vite.config.ts
+const BASE_PATH = '/mvp/';
+
 const MOODS = [
-  { name: 'Уютное', icon: '/images/mood/уютное.png' },
-  { name: 'Незнакомое', icon: '/images/mood/незнакомое.png' },
-  { name: 'Сытное', icon: '/images/mood/сытное.png' },
-  { name: 'Легкое', icon: '/images/mood/легкое.png' },
-  { name: 'Торжественное', icon: '/images/mood/торжественное.png' },
-  { name: 'Бодрое', icon: '/images/mood/бодрое.png' },
+  { name: 'Уютное', icon: `${BASE_PATH}images/mood/уютное.png` },
+  { name: 'Незнакомое', icon: `${BASE_PATH}images/mood/незнакомое.png` },
+  { name: 'Сытное', icon: `${BASE_PATH}images/mood/сытное.png` },
+  { name: 'Легкое', icon: `${BASE_PATH}images/mood/легкое.png` },
+  { name: 'Торжественное', icon: `${BASE_PATH}images/mood/торжественное.png` },
+  { name: 'Бодрое', icon: `${BASE_PATH}images/mood/бодрое.png` },
 ];
 
 const TASTES = [
-  { name: 'Любой', color: 'bg-lime-400', icon: '/images/vkysy/свежий.png' },
-  { name: 'Сладкое', color: 'bg-pink-300', icon: '/images/vkysy/сладкое.png' },
-  { name: 'Соленый', color: 'bg-blue-400', icon: '/images/vkysy/соленый.png' },
-  { name: 'Острое', color: 'bg-orange-500', icon: '/images/vkysy/остроое.png' },
-  { name: 'Умами', color: 'bg-yellow-400', icon: '/images/vkysy/умами.png' },
-  { name: 'Насыщенный', color: 'bg-red-700', icon: '/images/vkysy/насыщенный.png' },
-  { name: 'Нежный', color: 'bg-amber-50', icon: '/images/vkysy/нежный.png' },
+  { name: 'Любой', color: 'bg-lime-400', icon: `${BASE_PATH}images/vkysy/свежий.png` },
+  { name: 'Сладкое', color: 'bg-pink-300', icon: `${BASE_PATH}images/vkysy/сладкое.png` },
+  { name: 'Соленый', color: 'bg-blue-400', icon: `${BASE_PATH}images/vkysy/соленый.png` },
+  { name: 'Острое', color: 'bg-orange-500', icon: `${BASE_PATH}images/vkysy/остроое.png` },
+  { name: 'Умами', color: 'bg-yellow-400', icon: `${BASE_PATH}images/vkysy/умами.png` },
+  { name: 'Насыщенный', color: 'bg-red-700', icon: `${BASE_PATH}images/vkysy/насыщенный.png` },
+  { name: 'Нежный', color: 'bg-amber-50', icon: `${BASE_PATH}images/vkysy/нежный.png` },
 ];
 
 const CUISINES = [
@@ -266,7 +269,7 @@ export default function DishSelectionModal({
                   СМОТРЕТЬ БЛЮДА
                 </span>
                 <img
-                  src="/images/vector-down.png"
+                  src={`${BASE_PATH}images/vector-down.png`}
                   alt="Стрелка вниз"
                   className="h-3 w-auto"
                 />

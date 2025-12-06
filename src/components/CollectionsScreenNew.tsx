@@ -97,7 +97,7 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <img 
-            src="/images/банер.png" 
+            src="/mvp/images/банер.png" 
             alt="Баннер" 
             className="w-full cursor-pointer"
             onClick={() => setIsDishSelectionOpen(true)}
