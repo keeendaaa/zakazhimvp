@@ -1,5 +1,4 @@
 import { Sparkles, UtensilsCrossed, Bot, ShoppingCart } from 'lucide-react';
-import { Badge } from './ui/badge';
 
 interface BottomNavRestaurantProps {
   activeView: string;
@@ -38,11 +37,6 @@ export default function BottomNavRestaurant({
             >
               <div className="relative">
                 <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
-                {tab.id === 'cart' && cartItemsCount > 0 && (
-                  <Badge className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 h-5 min-w-5 sm:h-5 sm:min-w-5 flex items-center justify-center p-0 px-1 bg-blue-600 text-white text-[10px] sm:text-xs font-semibold">
-                    {cartItemsCount > 99 ? '99+' : cartItemsCount}
-                  </Badge>
-                )}
               </div>
               <span className="text-[10px] sm:text-xs font-medium leading-tight text-center px-1">
                 {tab.label}

@@ -105,7 +105,7 @@ function calculateTagMatchScore(
 
 /**
  * Алгоритм рекомендаций на основе тегов
- * Возвращает 8 самых подходящих блюд
+ * Возвращает 8 самых подходящих блюд БЕЗ ДУБЛИКАТОВ
  */
 export function getRecommendations(
   menuItems: MenuItem[],
@@ -113,18 +113,36 @@ export function getRecommendations(
 ): MenuItem[] {
   if (menuItems.length === 0) return [];
   
+  // Фильтруем блюда с валидными ID и уникальные по ID
+  const uniqueItems = new Map<string, MenuItem>();
+  menuItems.forEach(item => {
+    if (item.id && !uniqueItems.has(item.id)) {
+      // Также проверяем уникальность по имени для дополнительной защиты
+      const existingByName = Array.from(uniqueItems.values()).find(
+        existing => existing.name.toLowerCase().trim() === item.name.toLowerCase().trim()
+      );
+      if (!existingByName) {
+        uniqueItems.set(item.id, item);
+      }
+    }
+  });
+  
+  const validMenuItems = Array.from(uniqueItems.values());
+  
+  if (validMenuItems.length === 0) return [];
+  
   // Получаем теги для поиска
   const recommendationTags = getRecommendationTags(filters);
   
   // Если нет фильтров, возвращаем популярные блюда
   if (recommendationTags.length === 0) {
-    return menuItems
+    return validMenuItems
       .filter(item => item.isPopular)
       .slice(0, 8);
   }
   
   // Оцениваем каждое блюдо
-  const scoredItems = menuItems.map(item => ({
+  const scoredItems = validMenuItems.map(item => ({
     item,
     score: calculateTagMatchScore(item, recommendationTags),
   }));
@@ -132,24 +150,51 @@ export function getRecommendations(
   // Сортируем по убыванию счета
   scoredItems.sort((a, b) => b.score - a.score);
   
-  // Берем топ-8 блюд с ненулевым счетом
-  const topItems = scoredItems
-    .filter(scored => scored.score > 0)
-    .slice(0, 8)
-    .map(scored => scored.item);
+  // Берем топ-8 блюд с ненулевым счетом, гарантируя уникальность по ID и имени
+  const seenIds = new Set<string>();
+  const seenNames = new Set<string>();
+  const topItems: MenuItem[] = [];
   
-  // Если не набралось 8 блюд, дополняем популярными
+  for (const scored of scoredItems) {
+    if (topItems.length >= 8) break;
+    
+    const item = scored.item;
+    const itemId = item.id;
+    const itemName = item.name.toLowerCase().trim();
+    
+    // Проверяем на дубликаты по ID и имени - если уже есть такое блюдо, пропускаем
+    if (seenIds.has(itemId) || seenNames.has(itemName)) {
+      continue; // Пропускаем дубликаты
+    }
+    
+    // Добавляем в списки просмотренных
+    seenIds.add(itemId);
+    seenNames.add(itemName);
+    
+    if (scored.score > 0) {
+      topItems.push(item);
+    }
+  }
+  
+  // Если не набралось 8 блюд, дополняем популярными (тоже без дубликатов)
   if (topItems.length < 8) {
     const remaining = 8 - topItems.length;
-    const topIds = new Set(topItems.map(item => item.id));
-    const additional = menuItems
-      .filter(item => !topIds.has(item.id) && item.isPopular)
+    const additional = validMenuItems
+      .filter(item => {
+        const itemId = item.id;
+        const itemName = item.name.toLowerCase().trim();
+        // Проверяем, что нет дубликатов по ID и имени
+        return !seenIds.has(itemId) && 
+               !seenNames.has(itemName) && 
+               item.isPopular;
+      })
       .slice(0, remaining);
     
     return [...topItems, ...additional];
   }
   
-  return topItems;
+  // Гарантируем, что вернули ровно 8 блюд
+  return topItems.slice(0, 8);
 }
 
 /**
