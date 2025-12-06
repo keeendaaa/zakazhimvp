@@ -46,3 +46,4 @@ if no_image_contexts:
     print(f"\nБлюда без фото (no_image.png, найдено {len(no_image_contexts)}):")
     for id in no_image_contexts:
         print(f"  - {id}")
+

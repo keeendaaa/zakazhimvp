@@ -62,3 +62,4 @@ with open('menu_from_docx.txt', 'w', encoding='utf-8') as f:
     f.write(full_text)
 
 print(f"\nПолный текст сохранен в menu_from_docx.txt")
+

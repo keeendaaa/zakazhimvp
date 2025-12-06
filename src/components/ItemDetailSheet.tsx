@@ -94,6 +94,14 @@ export default function ItemDetailSheet({
           
           {/* Like and Add to cart buttons - right side */}
           <div className="flex items-center gap-2 ml-auto">
+            {/* Close button - right corner */}
+            <button
+              onClick={handleClose}
+              className="rounded-full bg-white/90 backdrop-blur-sm p-2 hover:bg-white transition-colors shadow-lg flex-shrink-0"
+              aria-label="Закрыть"
+            >
+              <X className="w-5 h-5" />
+            </button>
             {/* Like button */}
             <button
               onClick={(e) => {

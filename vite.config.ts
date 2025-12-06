@@ -60,7 +60,6 @@
             'vendor-motion': ['motion/react'],
             'vendor-radix': [
               '@radix-ui/react-dialog',
-              '@radix-ui/react-sheet',
               '@radix-ui/react-select',
               '@radix-ui/react-popover',
             ],

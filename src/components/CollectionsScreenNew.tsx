@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { MenuItem } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Plus, Search } from 'lucide-react';
@@ -369,10 +369,14 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
             // Используем локальный алгоритм рекомендаций на основе тегов
             const recommendedItems = getRecommendations(menuItems, filters);
             
+            // Ждем 2 секунды перед показом результатов
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
             setRecommendations(recommendedItems);
           } catch (error) {
             console.error('Ошибка при получении рекомендаций:', error);
             // Fallback: показываем популярные блюда
+            await new Promise(resolve => setTimeout(resolve, 2000));
             setRecommendations(menuItems.filter(item => item.isPopular).slice(0, 8));
           } finally {
             setIsLoadingRecommendations(false);
@@ -382,25 +386,43 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
       />
 
       {/* Loading Screen */}
-      {isLoadingRecommendations && (
-        <div className="fixed inset-0 z-50 bg-white flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Загрузка рекомендаций...</p>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {isLoadingRecommendations && (
+          <motion.div
+            key="loading-screen"
+            className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <p className="text-gray-900 text-2xl font-bold text-center mb-16" style={{ transform: 'translateY(-5rem)', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+              Подбираем вам лучшие блюда
+            </p>
+            <span className="loader block"></span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Personal Recommendations Screen */}
-      {recommendations && !isLoadingRecommendations && (
-        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
-          <PersonalRecommendations
-            recommendations={recommendations}
-            onItemSelect={setSelectedItem}
-            onClose={() => setRecommendations(null)}
-          />
-        </div>
-      )}
+      <AnimatePresence>
+        {recommendations && !isLoadingRecommendations && (
+          <motion.div
+            key="personal-recommendations"
+            className="fixed inset-0 z-50 bg-white overflow-y-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            <PersonalRecommendations
+              recommendations={recommendations}
+              onItemSelect={setSelectedItem}
+              onClose={() => setRecommendations(null)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </motion.div>
   );

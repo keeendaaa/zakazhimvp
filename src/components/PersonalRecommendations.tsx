@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import { MenuItem } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
 
 interface PersonalRecommendationsProps {
   recommendations: MenuItem[];
@@ -15,26 +15,32 @@ export default function PersonalRecommendations({
   onClose,
 }: PersonalRecommendationsProps) {
   return (
-    <div className="w-full bg-white min-h-screen relative">
-      {/* Back button - absolute positioned */}
-      {onClose && (
-        <button
-          onClick={onClose}
-          className="absolute top-4 left-4 z-10 w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
-          aria-label="Назад"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-      )}
-
+    <div className="w-full bg-white min-h-screen">
       {/* Header */}
-      <div className="px-4 pt-4 pb-4">
+      <div className="px-4 pt-6 pb-4">
+        {onClose && (
+          <div className="mb-4 flex items-center justify-between">
+            <button
+              onClick={onClose}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors -ml-1"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={onClose}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              aria-label="Закрыть"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
         <h1 className="text-xl font-bold text-gray-900 mb-3">Персональные рекомендации</h1>
         <div className="h-[1px] bg-gray-300 w-full"></div>
       </div>
 
       {/* Recommendations List */}
-      <div className="px-4 pb-24 space-y-6">
+      <div className="px-4 pb-6 space-y-6">
         {recommendations.map((item, index) => {
           const isEven = index % 2 === 0;
           

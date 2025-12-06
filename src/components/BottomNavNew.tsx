@@ -1,5 +1,4 @@
 import { Home, Coffee, UtensilsCrossed, ShoppingCart } from 'lucide-react';
-import { Badge } from './ui/badge';
 
 interface BottomNavNewProps {
   activeView: string;
@@ -36,11 +35,6 @@ export default function BottomNavNew({
             >
               <div className="relative">
                 <Icon className="w-6 h-6" />
-                {tab.id === 'cart' && cartItemsCount > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-4 min-w-4 flex items-center justify-center p-0 px-1 bg-blue-600 text-white text-xs">
-                    {cartItemsCount}
-                  </Badge>
-                )}
               </div>
               <span className="text-xs">{tab.label}</span>
             </button>
