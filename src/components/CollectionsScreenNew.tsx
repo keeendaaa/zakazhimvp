@@ -26,9 +26,10 @@ const itemVariants = {
 interface CollectionsScreenNewProps {
   menuItems: MenuItem[];
   onAddToCart: (item: MenuItem) => void;
+  onRecommendationsChange?: (isVisible: boolean) => void;
 }
 
-export default function CollectionsScreenNew({ menuItems, onAddToCart }: CollectionsScreenNewProps) {
+export default function CollectionsScreenNew({ menuItems, onAddToCart, onRecommendationsChange }: CollectionsScreenNewProps) {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDishSelectionOpen, setIsDishSelectionOpen] = useState(false);
@@ -46,6 +47,13 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
       }, 300);
     }
   }, []);
+
+  // Уведомляем родительский компонент об изменении видимости рекомендаций
+  React.useEffect(() => {
+    if (onRecommendationsChange) {
+      onRecommendationsChange(recommendations !== null && !isLoadingRecommendations);
+    }
+  }, [recommendations, isLoadingRecommendations, onRecommendationsChange]);
 
   // Filter items based on search query
   const filteredItems = menuItems.filter(item => 

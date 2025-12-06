@@ -39,6 +39,7 @@ export default function App() {
     // Проверяем, прошел ли пользователь онбординг
     return !localStorage.getItem('hasCompletedOnboarding');
   });
+  const [showRecommendations, setShowRecommendations] = useState(false);
 
   // Получаем ID ресторана из URL
   useEffect(() => {
@@ -103,9 +104,11 @@ export default function App() {
     setCart(prevCart => prevCart.filter(cartItem => cartItem.item.id !== itemId));
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = (tipAmount: number = 0) => {
+    // Сохраняем сумму чаевых для использования в заказе
     // Показываем промежуточное окно подтверждения
     setShowCheckoutConfirmation(true);
+    // TODO: Сохранить tipAmount для использования в заказе
   };
 
   const sendOrderToWebhook = async (orderData: {
@@ -262,9 +265,13 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Suspense fallback={<LoadingScreen />}>
-        {activeView === 'collections' && (
-          <CollectionsScreenNew menuItems={restaurantMenu} onAddToCart={handleAddToCart} />
-        )}
+      {activeView === 'collections' && (
+        <CollectionsScreenNew 
+          menuItems={restaurantMenu} 
+          onAddToCart={handleAddToCart}
+          onRecommendationsChange={setShowRecommendations}
+        />
+      )}
 
         {activeView === 'menu' && (
           <MenuScreenNew
@@ -300,7 +307,7 @@ export default function App() {
         cartItemsCount={cartItemsCount}
       />
 
-      <CallWaiterButton onCall={handleCallWaiter} />
+      <CallWaiterButton onCall={handleCallWaiter} hide={showRecommendations} />
 
       {showCheckoutConfirmation && (
         <Suspense fallback={<LoadingScreen />}>

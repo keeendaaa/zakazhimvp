@@ -17,7 +17,7 @@ interface CartScreenNewProps {
   cartItems: CartItem[];
   onUpdateQuantity: (itemId: string, newQuantity: number) => void;
   onRemoveItem: (itemId: string) => void;
-  onCheckout: () => void;
+  onCheckout: (tipAmount?: number) => void;
   onPayment?: () => void;
   lastOrder?: LastOrder | null;
   menuItems?: MenuItem[];
@@ -36,11 +36,32 @@ export default function CartScreenNew({
 }: CartScreenNewProps) {
   const [randomDishes, setRandomDishes] = useState<MenuItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [tipPercentage, setTipPercentage] = useState<number | null>(15);
+  const [customTip, setCustomTip] = useState<string>('');
+  const [showCustomTipInput, setShowCustomTipInput] = useState(false);
+  const [noTip, setNoTip] = useState(false);
 
-  const totalAmount = cartItems.reduce(
+  const subtotal = cartItems.reduce(
     (sum, item) => sum + item.item.price * item.quantity,
     0
   );
+
+  const calculateTip = () => {
+    if (noTip) {
+      return 0;
+    }
+    if (showCustomTipInput && customTip) {
+      const custom = parseFloat(customTip);
+      return isNaN(custom) ? 0 : custom;
+    }
+    if (tipPercentage !== null) {
+      return Math.round(subtotal * tipPercentage / 100);
+    }
+    return 0;
+  };
+
+  const tipAmount = calculateTip();
+  const totalAmount = subtotal + tipAmount;
 
   const lastOrderTotal = lastOrder
     ? lastOrder.items.reduce((sum, item) => sum + item.item.price * item.quantity, 0)
@@ -397,7 +418,7 @@ export default function CartScreenNew({
       {cartItems.length > 0 && (
         <>
           {/* Cart Items */}
-          <div className="px-4 space-y-3">
+          <div className="px-4 space-y-3 pb-3">
             {cartItems.map((item, index) => (
               <div
                 key={`${item.item.id}-${index}`}
@@ -455,21 +476,100 @@ export default function CartScreenNew({
             ))}
           </div>
 
+          {/* Tips Section */}
+          <div className="px-4 mb-4 mt-6">
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <h3 className="text-base font-semibold mb-4">Чаевые: {tipAmount} ₽</h3>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {[5, 10, 15, 20].map((percent) => {
+                  const tipForPercent = Math.round(subtotal * percent / 100);
+                  const isSelected = tipPercentage === percent && !showCustomTipInput;
+                  return (
+                    <button
+                      key={percent}
+                      onClick={() => {
+                        setTipPercentage(percent);
+                        setShowCustomTipInput(false);
+                        setCustomTip('');
+                        setNoTip(false);
+                      }}
+                      className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap"
+                      style={{
+                        backgroundColor: isSelected ? '#3b82f6' : '#f3f4f6',
+                        color: isSelected ? '#ffffff' : '#374151',
+                        fontWeight: isSelected ? '600' : '500'
+                      }}
+                    >
+                      {percent}%<span className="ml-1 text-xs">({tipForPercent} ₽)</span>
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => {
+                    setShowCustomTipInput(true);
+                    setTipPercentage(null);
+                    setNoTip(false);
+                  }}
+                  className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap"
+                  style={{
+                    backgroundColor: showCustomTipInput ? '#3b82f6' : '#f3f4f6',
+                    color: showCustomTipInput ? '#ffffff' : '#374151',
+                    fontWeight: showCustomTipInput ? '600' : '500'
+                  }}
+                >
+                  Ввести свою сумму
+                </button>
+                <button
+                  onClick={() => {
+                    setTipPercentage(null);
+                    setShowCustomTipInput(false);
+                    setCustomTip('');
+                    setNoTip(true);
+                  }}
+                  className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap"
+                  style={{
+                    backgroundColor: noTip && !showCustomTipInput && !customTip ? '#3b82f6' : '#f3f4f6',
+                    color: noTip && !showCustomTipInput && !customTip ? '#ffffff' : '#374151',
+                    fontWeight: noTip && !showCustomTipInput && !customTip ? '600' : '500'
+                  }}
+                >
+                  Нет
+                </button>
+              </div>
+              {showCustomTipInput && (
+                <div className="mt-4">
+                  <input
+                    type="number"
+                    value={customTip}
+                    onChange={(e) => setCustomTip(e.target.value)}
+                    placeholder="Введите сумму"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    autoFocus
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Checkout Footer */}
           <div className="fixed bottom-20 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4 shadow-lg">
             <div className="mb-4 space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">сумма</span>
-                <span>{totalAmount} ₽</span>
+                <span>{subtotal} ₽</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">сервисный сбор</span>
-                <span>0 ₽</span>
+                <span className="text-gray-600">чаевые</span>
+                <span>{tipAmount} ₽</span>
+              </div>
+              <div className="flex items-center justify-between text-sm font-semibold pt-2 border-t border-gray-100">
+                <span className="text-gray-900">итого</span>
+                <span className="text-gray-900">{totalAmount} ₽</span>
               </div>
             </div>
 
             <Button
-              onClick={onCheckout}
+              onClick={() => onCheckout(tipAmount)}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 rounded-full"
             >
               заказать {totalAmount} ₽
