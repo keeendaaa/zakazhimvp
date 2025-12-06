@@ -35,6 +35,18 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
   const [recommendations, setRecommendations] = useState<MenuItem[] | null>(null);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
 
+  // Проверяем, нужно ли открыть модальное окно после онбординга
+  React.useEffect(() => {
+    const shouldOpen = localStorage.getItem('shouldOpenDishSelection');
+    if (shouldOpen === 'true') {
+      localStorage.removeItem('shouldOpenDishSelection');
+      // Небольшая задержка для плавного перехода
+      setTimeout(() => {
+        setIsDishSelectionOpen(true);
+      }, 300);
+    }
+  }, []);
+
   // Filter items based on search query
   const filteredItems = menuItems.filter(item => 
     item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -407,25 +419,16 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
       </AnimatePresence>
 
       {/* Personal Recommendations Screen */}
-      <AnimatePresence>
-        {recommendations && !isLoadingRecommendations && (
-          <motion.div
-            key="personal-recommendations"
-            className="fixed inset-0 z-50 bg-white overflow-y-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-          >
-            <PersonalRecommendations
-              recommendations={recommendations}
-              onItemSelect={setSelectedItem}
-              onAddToCart={onAddToCart}
-              onClose={() => setRecommendations(null)}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {recommendations && !isLoadingRecommendations && (
+        <div className="fixed inset-0 z-30 bg-white overflow-y-auto">
+          <PersonalRecommendations
+            recommendations={recommendations}
+            onItemSelect={setSelectedItem}
+            onAddToCart={onAddToCart}
+            onClose={() => setRecommendations(null)}
+          />
+        </div>
+      )}
 
     </motion.div>
   );

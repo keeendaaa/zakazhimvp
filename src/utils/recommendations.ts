@@ -62,8 +62,8 @@ function getRecommendationTags(filters: SelectedFilters): string[] {
       // Если нет маппинга, пытаемся использовать сам фильтр как тег
       // Но только если это не "Любой"
       if (filter !== 'Любой') {
-        const normalizedFilter = filter.toLowerCase();
-        allTags.push(normalizedFilter);
+      const normalizedFilter = filter.toLowerCase();
+      allTags.push(normalizedFilter);
       }
     }
   });
