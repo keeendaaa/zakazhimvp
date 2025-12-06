@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Sheet, SheetContent } from './ui/sheet';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -38,8 +38,9 @@ const MOODS = [
 ];
 
 const TASTES = [
-  { name: 'Свежий', color: 'bg-lime-400', icon: '/images/vkysy/свежий.png' },
+  { name: 'Любой', color: 'bg-lime-400', icon: '/images/vkysy/свежий.png' },
   { name: 'Сладкое', color: 'bg-pink-300', icon: '/images/vkysy/сладкое.png' },
+  { name: 'Соленый', color: 'bg-blue-400', icon: '/images/vkysy/соленый.png' },
   { name: 'Острое', color: 'bg-orange-500', icon: '/images/vkysy/остроое.png' },
   { name: 'Умами', color: 'bg-yellow-400', icon: '/images/vkysy/умами.png' },
   { name: 'Насыщенный', color: 'bg-red-700', icon: '/images/vkysy/насыщенный.png' },
@@ -187,10 +188,10 @@ export default function DishSelectionModal({
               </div>
             </section>
 
-            {/* ПО ВКУСУ */}
+            {/* ВКУСОВОЙ ПРОФИЛЬ */}
             <section className="mb-8">
               <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase text-center">
-                ПО ВКУСУ
+                ВКУСОВОЙ ПРОФИЛЬ
               </h3>
               <div className="flex flex-nowrap gap-4 overflow-x-auto pb-2 scrollbar-hide">
                 {TASTES.map((taste) => {
@@ -202,7 +203,7 @@ export default function DishSelectionModal({
                       className="flex flex-col items-center flex-shrink-0"
                     >
                       <div
-                        className={`w-16 h-16 rounded-full mb-2 flex items-center justify-center transition-all overflow-hidden ${
+                        className={`w-16 h-16 rounded-full mb-2 flex items-center justify-center transition-all overflow-hidden ${taste.color} ${
                           isSelected
                             ? 'ring-4 ring-blue-500 ring-offset-2 scale-110'
                             : 'hover:scale-105'
@@ -212,9 +213,6 @@ export default function DishSelectionModal({
                           src={taste.icon}
                           alt={taste.name}
                           className="w-full h-full object-cover"
-                          fallback={
-                            <div className={`w-full h-full rounded-full ${taste.color}`} />
-                          }
                         />
                       </div>
                       <span

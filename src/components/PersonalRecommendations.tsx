@@ -35,43 +35,44 @@ export default function PersonalRecommendations({
             </button>
           </div>
         )}
-        <h1 className="text-xl font-bold text-gray-900 mb-3">Персональные рекомендации</h1>
-        <div className="h-[1px] bg-gray-300 w-full"></div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-3 pb-3 border-b border-gray-900">Персональные рекомендации</h1>
       </div>
 
       {/* Recommendations List */}
-      <div className="px-4 pb-6 space-y-6">
+      <div className="px-4 pb-24 space-y-4">
         {recommendations.map((item, index) => {
           const isEven = index % 2 === 0;
           
           return (
             <motion.div
               key={`${item.id}-${index}`}
-              className={`flex items-start gap-4 cursor-pointer active:opacity-70 transition-opacity ${
-                !isEven ? 'flex-row-reverse' : ''
-              }`}
+              className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer active:opacity-70 transition-all hover:shadow-md"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               onClick={() => onItemSelect(item)}
             >
-              {/* Image */}
-              <div className="flex-shrink-0">
-                <div className="w-24 h-24 rounded-xl overflow-hidden border border-gray-200">
-                  <ImageWithFallback
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
+              <div className={`flex items-start gap-4 ${
+                !isEven ? 'flex-row-reverse' : ''
+              }`}>
+                {/* Image */}
+                <div className="flex-shrink-0">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden border border-gray-200">
+                    <ImageWithFallback
+                      src={item.image}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Text Content */}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-base text-gray-900 mb-2 leading-tight">{item.name}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {item.description}
-                </p>
+                {/* Text Content */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-base text-gray-900 mb-2 leading-tight">{item.name}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
               </div>
             </motion.div>
           );

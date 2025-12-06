@@ -26,8 +26,9 @@ const FILTER_TO_TAGS_MAP: Record<string, string[]> = {
   'Бодрое': ['освежающее'],
   
   // Вкусы
-  'Свежий': ['свежее'],
+  'Любой': [], // "Любой" не применяет фильтр по вкусу
   'Сладкое': ['сладкое'],
+  'Соленый': ['соленое'],
   'Острое': ['острое'],
   'Умами': [],
   'Насыщенный': ['премиум'],
@@ -49,14 +50,21 @@ function getRecommendationTags(filters: SelectedFilters): string[] {
   const allTags: string[] = [];
   
   // Собираем все теги из фильтров
-  [...filters.situation, ...filters.mood, ...filters.taste, ...filters.cuisine].forEach(filter => {
+  // Исключаем "Любой" из фильтров по вкусу - он не должен применяться
+  const tasteFilters = filters.taste.filter(t => t !== 'Любой');
+  const allFilters = [...filters.situation, ...filters.mood, ...tasteFilters, ...filters.cuisine];
+  
+  allFilters.forEach(filter => {
     const mappedTags = FILTER_TO_TAGS_MAP[filter] || [];
     if (mappedTags.length > 0) {
       allTags.push(...mappedTags);
     } else {
       // Если нет маппинга, пытаемся использовать сам фильтр как тег
-      const normalizedFilter = filter.toLowerCase();
-      allTags.push(normalizedFilter);
+      // Но только если это не "Любой"
+      if (filter !== 'Любой') {
+        const normalizedFilter = filter.toLowerCase();
+        allTags.push(normalizedFilter);
+      }
     }
   });
   
@@ -93,6 +101,19 @@ function calculateTagMatchScore(
       }
     });
   });
+  
+  // Специальная логика для "соленое" - поиск по ключевым словам в названии, описании и ингредиентах
+  if (normalizedRecTags.includes('соленое')) {
+    const searchText = [
+      item.name.toLowerCase(),
+      item.description.toLowerCase(),
+      ...(item.ingredients || []).map(ing => ing.toLowerCase())
+    ].join(' ');
+    
+    if (searchText.includes('солен') || searchText.includes('солон')) {
+      partialMatches += 1.5; // Высокий приоритет для соленых блюд
+    }
+  }
   
   // Бонусы за популярность/новинки
   let bonus = 0;

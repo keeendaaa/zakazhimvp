@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { MenuItem } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Plus, ArrowLeft, X, Heart } from 'lucide-react';
@@ -87,8 +87,8 @@ export default function ItemDetailSheet({
           
           {/* Volume - middle */}
           <div className="flex-1">
-            {item.volume && (
-              <span className="text-gray-600">{item.volume}</span>
+            {(item as any).volume && (
+              <span className="text-gray-600">{(item as any).volume}</span>
             )}
           </div>
           

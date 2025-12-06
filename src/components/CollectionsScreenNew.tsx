@@ -396,7 +396,7 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <p className="text-gray-900 text-2xl font-bold text-center mb-16" style={{ transform: 'translateY(-5rem)', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+            <p className="text-gray-600 text-2xl font-bold text-center mb-16" style={{ transform: 'translateY(-5rem)', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
               Подбираем вам лучшие блюда
             </p>
             <span className="loader block"></span>
