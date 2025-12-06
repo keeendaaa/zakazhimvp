@@ -27,6 +27,7 @@ interface MenuScreenNewProps {
 }
 
 const categoryLabels = {
+  all: 'Все',
   appetizers: 'Закуски',
   soups: 'Супы',
   mains: 'Основные блюда',
@@ -35,7 +36,8 @@ const categoryLabels = {
 
 export default function MenuScreenNew({ menuItems, onAddToCart }: MenuScreenNewProps) {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-  const [activeCategory, setActiveCategory] = useState<keyof typeof categoryLabels>('appetizers');
+  const [activeCategory, setActiveCategory] = useState<keyof typeof categoryLabels>('all');
+  const [shuffledAllItems, setShuffledAllItems] = useState<MenuItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -48,11 +50,18 @@ export default function MenuScreenNew({ menuItems, onAddToCart }: MenuScreenNewP
 
   const categories = Object.keys(categoryLabels) as Array<keyof typeof categoryLabels>;
   
+  // Shuffle all items when "all" category is selected
+  useEffect(() => {
+    if (activeCategory === 'all') {
+      const shuffled = [...menuItems].sort(() => Math.random() - 0.5);
+      setShuffledAllItems(shuffled);
+    }
+  }, [activeCategory, menuItems]);
+  
   // Get all unique tags from menu items in current category
   const allTags = Array.from(
     new Set(
-      menuItems
-        .filter(item => item.category === activeCategory)
+      (activeCategory === 'all' ? menuItems : menuItems.filter(item => item.category === activeCategory))
         .flatMap(item => item.tags || [])
     )
   ).sort();
@@ -60,14 +69,13 @@ export default function MenuScreenNew({ menuItems, onAddToCart }: MenuScreenNewP
   // Get all unique allergens from menu items in current category
   const allAllergens = Array.from(
     new Set(
-      menuItems
-        .filter(item => item.category === activeCategory)
+      (activeCategory === 'all' ? menuItems : menuItems.filter(item => item.category === activeCategory))
         .flatMap(item => item.allergens || [])
     )
   ).sort();
 
   // Get price range from menu items
-  const categoryItems = menuItems.filter(item => item.category === activeCategory);
+  const categoryItems = activeCategory === 'all' ? menuItems : menuItems.filter(item => item.category === activeCategory);
   const minPrice = categoryItems.length > 0 ? Math.min(...categoryItems.map(item => item.price || 0)) : 0;
   const maxPrice = categoryItems.length > 0 ? Math.max(...categoryItems.map(item => item.price || 0)) : 10000;
   const minCalories = categoryItems.length > 0 ? Math.min(...categoryItems.map(item => item.calories || 0).filter(c => c > 0)) : 0;
@@ -132,8 +140,8 @@ export default function MenuScreenNew({ menuItems, onAddToCart }: MenuScreenNewP
   };
 
   // Filter items based on category, search query and all filters
-  const filteredItems = menuItems.filter(item => {
-    const matchesCategory = item.category === activeCategory;
+  const filteredItems = (activeCategory === 'all' ? shuffledAllItems : menuItems).filter(item => {
+    const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
     if (!matchesCategory) return false;
     
     // Search filter

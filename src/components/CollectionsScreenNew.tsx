@@ -45,6 +45,12 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
   const favorites = filteredItems.filter(item => item.isFavorite);
   const popular = filteredItems.filter(item => item.isPopular);
   const newItems = filteredItems.filter(item => item.isNew);
+  
+  // Блюда для раздела "За этим приходят"
+  const featuredDishIds = ['viva_16', 'viva_58', 'viva_53', 'viva_49'];
+  const featuredDishes = menuItems
+    .filter(item => featuredDishIds.includes(item.id))
+    .sort((a, b) => featuredDishIds.indexOf(a.id) - featuredDishIds.indexOf(b.id));
 
   return (
     <motion.div 
@@ -166,7 +172,7 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
         {/* Section: Избранное */}
         {!searchQuery && (
           <section className="mb-10">
-            <h2 className="mb-4">Ваши любимые</h2>
+            <h2 className="mb-4">Популярное</h2>
           
           <motion.div 
             className="grid grid-cols-3 gap-3"
@@ -174,7 +180,7 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
             initial="hidden"
             animate="show"
           >
-            {favorites.slice(0, 3).map(item => (
+            {popular.slice(0, 3).map(item => (
               <motion.div
                 key={item.id}
                 variants={itemVariants}
@@ -214,49 +220,45 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
         {/* Section: Популярное */}
         {!searchQuery && (
         <section className="mb-10">
-          <h2 className="mb-4">Популярное сегодня</h2>
+          <h2 className="mb-4">За этим приходят</h2>
           
           <div className="space-y-3">
-            {popular.slice(0, 4).map((item, index) => {
-              if (index === 0) {
-                // First item - large card
-                return (
-                  <motion.div
-                    key={item.id}
-                    className="relative rounded-3xl overflow-hidden h-64 cursor-pointer group"
-                    onClick={() => setSelectedItem(item)}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <ImageWithFallback
-                      src={item.image}
-                      alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                      <h2 className="mb-2">{item.name}</h2>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg">{item.price} ₽</span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onAddToCart(item);
-                          }}
-                          className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 active:scale-90 transition-all"
-                        >
-                          <Plus className="w-6 h-6" />
-                        </button>
-                      </div>
+            {featuredDishes.slice(0, 1).map((item) => {
+              // First item - large card
+              return (
+                <motion.div
+                  key={item.id}
+                  className="relative rounded-3xl overflow-hidden h-64 cursor-pointer group"
+                  onClick={() => setSelectedItem(item)}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <ImageWithFallback
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                    <h2 className="mb-2">{item.name}</h2>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg">{item.price} ₽</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddToCart(item);
+                        }}
+                        className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 active:scale-90 transition-all"
+                      >
+                        <Plus className="w-6 h-6" />
+                      </button>
                     </div>
-                  </motion.div>
-                );
-              }
-              
-              return null;
+                  </div>
+                </motion.div>
+              );
             })}
 
             {/* Grid of 3 items */}
@@ -266,7 +268,7 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
               initial="hidden"
               animate="show"
             >
-              {popular.slice(1, 4).map(item => (
+              {featuredDishes.slice(1, 4).map(item => (
                 <motion.div
                   key={item.id}
                   variants={itemVariants}
@@ -418,6 +420,7 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart }: Collect
             <PersonalRecommendations
               recommendations={recommendations}
               onItemSelect={setSelectedItem}
+              onAddToCart={onAddToCart}
               onClose={() => setRecommendations(null)}
             />
           </motion.div>

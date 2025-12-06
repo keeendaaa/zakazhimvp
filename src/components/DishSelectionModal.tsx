@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sheet, SheetContent } from './ui/sheet';
-import { motion } from 'motion/react';
+import { motion, PanInfo } from 'motion/react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { MenuItem } from '../types';
 
@@ -105,24 +105,44 @@ export default function DishSelectionModal({
     selectedFilters.taste.length > 0 ||
     selectedFilters.cuisine.length > 0;
 
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const threshold = 80;
+    
+    if (info.offset.y > threshold || info.velocity.y > 300) {
+      onClose();
+    }
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="bottom"
-        className="h-[90vh] rounded-t-3xl p-0 overflow-y-auto [&>button]:!hidden"
-        style={{ background: 'linear-gradient(to bottom, #C5E1FD, #F9FAFB)' }}
+        className="max-h-[70vh] rounded-t-3xl p-0 overflow-y-auto [&>button]:!hidden"
+        style={{ background: 'linear-gradient(to bottom, #E3F0FC, #F9FAFB)' }}
       >
-        <div className="flex flex-col h-full">
+        <motion.div
+          className="flex flex-col h-full"
+          drag="y"
+          dragConstraints={{ top: 0 }}
+          dragElastic={{ top: 0, bottom: 0.2 }}
+          onDragEnd={handleDragEnd}
+          dragMomentum={false}
+        >
+          {/* Drag Handle */}
+          <div className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing">
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+          </div>
+
           {/* Header with all sections */}
           <div 
-            className="sticky top-0 z-10 px-6 pt-6 pb-4 overflow-y-auto flex-1"
-            style={{ background: 'linear-gradient(to bottom, #C5E1FD, #F9FAFB)' }}
+            className="sticky top-0 z-10 px-6 pt-2 pb-4 overflow-y-auto flex-1"
+            style={{ background: 'linear-gradient(to bottom, #E3F0FC, #F9FAFB)' }}
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">Подобрать блюда</h2>
               <button
                 onClick={handleReset}
-                className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
+                className="text-gray-600 text-sm font-medium hover:text-gray-700 transition-colors"
               >
                 СБРОСИТЬ
               </button>
@@ -261,11 +281,11 @@ export default function DishSelectionModal({
             <div className="px-6 py-4">
               <motion.button
                 onClick={handleViewDishes}
-                className="w-full flex flex-col items-center justify-center gap-2 hover:opacity-80 transition-opacity"
+                className="w-full flex flex-col items-center justify-center gap-2 border-2 border-blue-600 text-gray-700 rounded-2xl py-4 px-6 bg-transparent hover:opacity-80 transition-opacity"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <span className="text-sm font-semibold text-gray-700 uppercase">
+                <span className="text-sm font-semibold uppercase">
                   СМОТРЕТЬ БЛЮДА
                 </span>
                 <img
@@ -276,7 +296,7 @@ export default function DishSelectionModal({
               </motion.button>
             </div>
           </div>
-        </div>
+        </motion.div>
       </SheetContent>
     </Sheet>
   );

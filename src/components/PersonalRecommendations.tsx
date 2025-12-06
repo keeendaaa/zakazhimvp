@@ -1,17 +1,19 @@
 import { motion } from 'motion/react';
 import { MenuItem } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, X, Plus } from 'lucide-react';
 
 interface PersonalRecommendationsProps {
   recommendations: MenuItem[];
   onItemSelect: (item: MenuItem) => void;
+  onAddToCart?: (item: MenuItem) => void;
   onClose?: () => void;
 }
 
 export default function PersonalRecommendations({
   recommendations,
   onItemSelect,
+  onAddToCart,
   onClose,
 }: PersonalRecommendationsProps) {
   return (
@@ -69,9 +71,24 @@ export default function PersonalRecommendations({
                 {/* Text Content */}
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-base text-gray-900 mb-2 leading-tight">{item.name}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <p className="text-sm text-gray-600 leading-relaxed mb-3">
                     {item.description}
                   </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-semibold text-gray-900">{item.price} ₽</span>
+                    {onAddToCart && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddToCart(item);
+                        }}
+                        className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center justify-center transition-colors active:scale-90"
+                        aria-label={`Добавить ${item.name} в корзину`}
+                      >
+                        <Plus className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </motion.div>
