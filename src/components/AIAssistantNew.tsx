@@ -22,13 +22,7 @@ interface AIAssistantNewProps {
 // URL webhook n8n - определяется в зависимости от окружения
 const getN8NWebhookUrl = () => {
   // Production вебхук
-  // ВАЖНО: Если production webhook возвращает пустой ответ, временно можно использовать тестовый:
-  // return 'https://n8n.zakazhi.online/webhook-test/939aba8e-36b3-4011-ac35-13fc37dc9712';
-  return 'https://n8n.zakazhi.online/webhook/939aba8e-36b3-4011-ac35-13fc37dc9712';
-  // const isDevelopment = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-  // return isDevelopment
-  //   ? '/api/n8n/webhook/939aba8e-36b3-4011-ac35-13fc37dc9712'
-  //   : 'https://n8n.zakazhi.org/webhook/939aba8e-36b3-4011-ac35-13fc37dc9712';
+  return 'https://n8n.zakazhi.online/webhook/mvp';
 };
 
 export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNewProps) {
@@ -144,14 +138,20 @@ export default function AIAssistantNew({ menuItems, onAddToCart }: AIAssistantNe
         throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
 
+      // Проверяем, есть ли данные в ответе
+      const responseClone = response.clone();
       const responseText = await response.text();
       console.log('[AI Assistant] Сырой ответ (текст):', responseText);
       console.log('[AI Assistant] Длина ответа:', responseText.length);
+      console.log('[AI Assistant] Тип ответа:', typeof responseText);
       
       // Проверяем, что ответ не пустой
       if (!responseText || responseText.trim() === '') {
         console.error('[AI Assistant] ❌❌❌ ПУСТОЙ ОТВЕТ ОТ N8N!');
         console.error('[AI Assistant] HTTP статус был:', response.status);
+        console.error('[AI Assistant] URL был:', webhookUrl);
+        console.error('[AI Assistant] Тело запроса было:', JSON.stringify(requestBody, null, 2));
+        console.error('[AI Assistant] ⚠️ ПРОБЛЕМА: n8n workflow не возвращает данные. Проверьте настройки workflow в n8n.');
         console.error('[AI Assistant] Используем fallback на локальную обработку');
         const fallbackResponse = generateResponse(userMessage);
         return {
