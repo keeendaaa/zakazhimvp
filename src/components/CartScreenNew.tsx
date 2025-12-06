@@ -40,6 +40,7 @@ export default function CartScreenNew({
   const [customTip, setCustomTip] = useState<string>('');
   const [showCustomTipInput, setShowCustomTipInput] = useState(false);
   const [noTip, setNoTip] = useState(false);
+  const [tipSplit, setTipSplit] = useState<string>('50/50');
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.item.price * item.quantity,
@@ -318,8 +319,11 @@ export default function CartScreenNew({
     );
   }
 
+  // Вычисляем нужный padding-bottom в зависимости от наличия прошлого заказа и элементов в корзине
+  const needsExtraPadding = lastOrder && cartItems.length > 0;
+  
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-gray-50 px-4 pt-8 pb-4">
         <div className="flex items-center justify-between mb-2">
@@ -416,7 +420,7 @@ export default function CartScreenNew({
 
       {/* Текущая корзина */}
       {cartItems.length > 0 && (
-        <>
+        <div className={lastOrder ? 'pb-[280px]' : 'pb-20'}>
           {/* Cart Items */}
           <div className="px-4 space-y-3 pb-3">
             {cartItems.map((item, index) => (
@@ -477,7 +481,7 @@ export default function CartScreenNew({
           </div>
 
           {/* Tips Section */}
-          <div className="px-4 mb-4 mt-6">
+          <div className="px-4 mt-6 mb-4">
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <h3 className="text-base font-semibold mb-4">Чаевые: {tipAmount} ₽</h3>
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -500,7 +504,7 @@ export default function CartScreenNew({
                         fontWeight: isSelected ? '600' : '500'
                       }}
                     >
-                      {percent}%<span className="ml-1 text-xs">({tipForPercent} ₽)</span>
+                      {percent}%<span className="ml-1 text-xs"></span>
                     </button>
                   );
                 })}
@@ -548,11 +552,32 @@ export default function CartScreenNew({
                   />
                 </div>
               )}
+              
+              {/* Tip Split Section */}
+              <div className="mt-3 pt-3">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Пропорции официанту/сервису</h4>
+                <div className="flex gap-2">
+                  {['70/30', '50/50', '30/70'].map((split) => (
+                    <button
+                      key={split}
+                      onClick={() => setTipSplit(split)}
+                      className="flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all"
+                      style={{
+                        backgroundColor: tipSplit === split ? '#3b82f6' : '#f3f4f6',
+                        color: tipSplit === split ? '#ffffff' : '#374151',
+                        fontWeight: tipSplit === split ? '600' : '500'
+                      }}
+                    >
+                      {split}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Checkout Footer */}
-          <div className="fixed bottom-20 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4 shadow-lg">
+          <div className="fixed bottom-20 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4 shadow-lg z-10">
             <div className="mb-4 space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">сумма</span>
@@ -575,7 +600,7 @@ export default function CartScreenNew({
               заказать {totalAmount} ₽
             </Button>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
