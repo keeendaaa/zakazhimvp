@@ -14,7 +14,6 @@ const CartScreenNew = lazy(() => import('./components/CartScreenNew'));
 const OrderConfirmationNew = lazy(() => import('./components/OrderConfirmationNew'));
 const PaymentScreen = lazy(() => import('./components/PaymentScreen'));
 const CheckoutConfirmation = lazy(() => import('./components/CheckoutConfirmation'));
-const OnboardingScreen = lazy(() => import('./components/OnboardingScreen'));
 
 // Loading component
 const LoadingScreen = () => (
@@ -35,10 +34,6 @@ export default function App() {
   const [orderNumber, setOrderNumber] = useState('');
   const [restaurantId, setRestaurantId] = useState<string>('');
   const [lastOrder, setLastOrder] = useState<{ items: CartItem[]; time: string; orderNumber: string; isPaid?: boolean } | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
-    // Проверяем, прошел ли пользователь онбординг
-    return !localStorage.getItem('hasCompletedOnboarding');
-  });
   const [showRecommendations, setShowRecommendations] = useState(false);
 
   // Получаем ID ресторана из URL
@@ -221,15 +216,6 @@ export default function App() {
 
   const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = cart.reduce((sum, item) => sum + item.item.price * item.quantity, 0);
-
-  // Если нужно показать онбординг - показываем его первым
-  if (showOnboarding) {
-    return (
-      <Suspense fallback={null}>
-        <OnboardingScreen onComplete={() => setShowOnboarding(false)} />
-      </Suspense>
-    );
-  }
 
   // Если оплата завершена, показываем экран оплаты
   if (paymentCompleted) {
