@@ -420,7 +420,7 @@ export default function CartScreenNew({
 
       {/* Текущая корзина */}
       {cartItems.length > 0 && (
-        <div className={lastOrder ? 'pb-[280px]' : 'pb-20'}>
+        <div className="pb-32">
           {/* Cart Items */}
           <div className="px-4 space-y-3 pb-3">
             {cartItems.map((item, index) => (
@@ -481,7 +481,7 @@ export default function CartScreenNew({
           </div>
 
           {/* Tips Section */}
-          <div className="px-4 mt-6 mb-4">
+          <div className="px-4 mt-6 mb-8">
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <h3 className="text-base font-semibold mb-4">Чаевые: {tipAmount} ₽</h3>
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -577,28 +577,30 @@ export default function CartScreenNew({
           </div>
 
           {/* Checkout Footer */}
-          <div className="fixed bottom-20 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4 shadow-lg z-10">
-            <div className="mb-4 space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">сумма</span>
-                <span>{subtotal} ₽</span>
+          <div className="px-4 mt-6 mb-4">
+            <div className="bg-white rounded-2xl border-t border-gray-100 px-4 py-4 shadow-lg">
+              <div className="mb-4 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">сумма</span>
+                  <span>{subtotal} ₽</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">чаевые</span>
+                  <span>{tipAmount} ₽</span>
+                </div>
+                <div className="flex items-center justify-between text-sm font-semibold pt-2 border-t border-gray-100">
+                  <span className="text-gray-900">итого</span>
+                  <span className="text-gray-900">{totalAmount} ₽</span>
+                </div>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">чаевые</span>
-                <span>{tipAmount} ₽</span>
-              </div>
-              <div className="flex items-center justify-between text-sm font-semibold pt-2 border-t border-gray-100">
-                <span className="text-gray-900">итого</span>
-                <span className="text-gray-900">{totalAmount} ₽</span>
-              </div>
-            </div>
 
-            <Button
-              onClick={() => onCheckout(tipAmount)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 rounded-full"
-            >
-              заказать {totalAmount} ₽
-            </Button>
+              <Button
+                onClick={() => onCheckout(tipAmount)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 rounded-full"
+              >
+                заказать {totalAmount} ₽
+              </Button>
+            </div>
           </div>
         </div>
       )}
