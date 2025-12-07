@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MenuItem } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -63,14 +63,25 @@ export default function CollectionsScreenNew({ menuItems, onAddToCart, onRecomme
   );
 
   const favorites = filteredItems.filter(item => item.isFavorite);
-  const popular = filteredItems.filter(item => item.isPopular);
-  const newItems = filteredItems.filter(item => item.isNew);
   
-  // Блюда для раздела "За этим приходят"
+  // Рандомные блюда для "Популярное"
+  const getRandomItems = (items: MenuItem[], count: number) => {
+    const shuffled = [...items].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+  };
+  
+  const popular = useMemo(() => getRandomItems(filteredItems, 3), [filteredItems]);
+  
+  // Рандомные блюда для "Новинки"
+  const newItems = useMemo(() => getRandomItems(filteredItems, 5), [filteredItems]);
+  
+  // Блюда для раздела "За этим приходят" - конкретные заготовки
   const featuredDishIds = ['viva_16', 'viva_58', 'viva_53', 'viva_49'];
-  const featuredDishes = menuItems
-    .filter(item => featuredDishIds.includes(item.id))
-    .sort((a, b) => featuredDishIds.indexOf(a.id) - featuredDishIds.indexOf(b.id));
+  const featuredDishes = useMemo(() => {
+    return menuItems
+      .filter(item => featuredDishIds.includes(item.id))
+      .sort((a, b) => featuredDishIds.indexOf(a.id) - featuredDishIds.indexOf(b.id));
+  }, [menuItems]);
 
   return (
     <motion.div 
