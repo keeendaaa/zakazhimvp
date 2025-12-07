@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Minus, Plus, Trash2, ShoppingBag, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
 import ItemDetailSheet from './ItemDetailSheet';
+import { LoginForm } from './LoginForm';
 
 interface LastOrder {
   items: CartItem[];
@@ -41,6 +42,10 @@ export default function CartScreenNew({
   const [showCustomTipInput, setShowCustomTipInput] = useState(false);
   const [noTip, setNoTip] = useState(false);
   const [tipSplit, setTipSplit] = useState<string>('50/50');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    // Проверяем, залогинен ли пользователь из localStorage
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.item.price * item.quantity,
@@ -575,6 +580,20 @@ export default function CartScreenNew({
               </div>
             </div>
           </div>
+
+          {/* Login Section - показываем пока заказ не оплачен */}
+          {lastOrder && !lastOrder.isPaid && (
+            <div className="px-4 mt-6 mb-4">
+              <LoginForm onLogin={(user) => {
+                console.log('User logged in:', user);
+                // Сохраняем данные пользователя
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('telegramUser', JSON.stringify(user));
+                setIsLoggedIn(true);
+                // TODO: Отправить данные на сервер для регистрации/авторизации
+              }} />
+            </div>
+          )}
 
           {/* Checkout Footer */}
           <div className="px-4 mt-6 mb-4">

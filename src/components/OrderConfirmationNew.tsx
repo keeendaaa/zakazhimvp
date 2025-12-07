@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { CheckCircle2, Clock, ChefHat } from 'lucide-react';
+import { LoginForm } from './LoginForm';
 
 interface OrderConfirmationNewProps {
   orderNumber: string;
@@ -14,6 +15,9 @@ export default function OrderConfirmationNew({
   onPayment,
 }: OrderConfirmationNewProps) {
   const [estimatedTime, setEstimatedTime] = useState(15);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    return false; // localStorage.getItem('isLoggedIn') === 'true';
+  });
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -60,6 +64,20 @@ export default function OrderConfirmationNew({
             официант принесёт ваш заказ к столу
           </p>
         </div>
+
+        {/* Login Section - показываем если не залогинен */}
+        {!isLoggedIn && (
+          <div className="mb-6 w-full">
+            <LoginForm onLogin={(user) => {
+              console.log('User logged in:', user);
+              // Сохраняем данные пользователя
+              localStorage.setItem('isLoggedIn', 'true');
+              localStorage.setItem('telegramUser', JSON.stringify(user));
+              setIsLoggedIn(true);
+              // TODO: Отправить данные на сервер для регистрации/авторизации
+            }} />
+          </div>
+        )}
 
         {/* Actions */}
         <div className="space-y-3">
