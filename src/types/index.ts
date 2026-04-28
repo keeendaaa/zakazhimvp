@@ -26,25 +26,6 @@ export interface MenuItem {
 export interface CartItem {
   item: MenuItem;
   quantity: number;
-  removedIngredients?: string[]; // Ингредиенты, которые пользователь убрал
-}
-
-export interface OrderHistoryItem {
-  orderNumber: string;
-  items: CartItem[];
-  time: string;
-  date: string;
-  totalAmount: number;
 }
 
 export type ViewMode = 'collections' | 'menu' | 'assistant' | 'cart';
-
-export interface ITelegramUser {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  auth_date: number;
-  hash: string;
-}

@@ -1,11 +1,40 @@
+# Zakazhi MVP Backup
 
-  # Restaurant QR Code App
+Backup repository for the Zakazhi QR menu application.
 
-  This is a code bundle for Restaurant QR Code App. The original project is available at https://www.figma.com/design/L3Zc2WRyz14rDIhZWW5vRs/Restaurant-QR-Code-App.
+## Included
 
-  ## Running the code
+- Production frontend from `/var/www/zakazhimvp` in the repository root.
+- Backend from `/opt/zakazhi` in `backend/`.
+- Raw PostgreSQL 16 data backup in `database/postgresql-raw/16-main/`.
+- Nginx config snapshot in `docs/server/nginx-zakazhi.online.conf`.
+- Deployment and recovery guide in `docs/DEPLOYMENT.md`.
 
-  Run `npm i` to install the dependencies.
+## Secrets
 
-  Run `npm run dev` to start the development server.
-  
+Real `.env` files, passwords, API tokens, private keys and TLS keys are excluded. Use:
+
+- `backend/.env.server.example`
+- `backend/.env.client.example`
+
+## Frontend
+
+```bash
+npm install
+npm run dev
+npm run build
+```
+
+## Backend
+
+```bash
+cd backend
+cp .env.server.example .env.server
+cp .env.client.example .env.client
+npm install
+wasp start db
+wasp db migrate-dev
+wasp start
+```
+
+Read `docs/DEPLOYMENT.md` before deploying or restoring the database.

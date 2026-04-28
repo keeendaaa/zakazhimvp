@@ -3,6 +3,390 @@ import { MenuItem } from '../types';
 // Спарсенные блюда из Viva Bistro
 export const restaurantMenu: MenuItem[] = [
   {
+    "id": "viva_1",
+    "name": "Маргарита",
+    "description": "Классическая итальянская пицца с томатами, моцареллой и базиликом",
+    "price": 560,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2706_margarita.jpg?v4",
+    "category": "mains",
+    "calories": 520,
+    "nutrients": {
+      "proteins": 22,
+      "fats": 18,
+      "carbs": 65
+    },
+    "weight": "350 г",
+    "ingredients": ["тесто для пиццы", "томатный соус", "моцарелла", "базилик", "оливковое масло"],
+    "allergens": ["глютен", "молочные продукты"],
+    "tags": ["популярное", "итальянское", "вегетарианское"],
+    "isPopular": true,
+    "isFavorite": true
+  },
+  {
+    "id": "viva_2",
+    "name": "Греческий",
+    "description": "Классический греческий салат с фетой, оливками, томатами и оливковым маслом",
+    "price": 580,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2610_grecheskiy.jpg?v4",
+    "category": "appetizers",
+    "calories": 320,
+    "nutrients": {
+      "proteins": 15,
+      "fats": 25,
+      "carbs": 12
+    },
+    "weight": "280 г",
+    "ingredients": ["помидоры", "огурцы", "красный лук", "фета", "оливки", "оливковое масло"],
+    "allergens": ["молочные продукты"],
+    "tags": ["популярное", "греческое", "вегетарианское"],
+    "isPopular": true,
+    "isFavorite": true
+  },
+  {
+    "id": "viva_3",
+    "name": "Гуакамоле",
+    "description": "Мексиканская закуска из авокадо с томатами, луком и специями",
+    "price": 320,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2590_guakamole.jpg?v4",
+    "category": "appetizers",
+    "calories": 280,
+    "nutrients": {
+      "proteins": 8,
+      "fats": 22,
+      "carbs": 15
+    },
+    "weight": "200 г",
+    "ingredients": ["авокадо", "помидоры", "лук", "лимон", "чеснок", "кориандр"],
+    "allergens": [],
+    "tags": ["вегетарианское", "мексиканское"],
+    "isPopular": false
+  },
+  {
+    "id": "viva_4",
+    "name": "Хумус",
+    "description": "Классический хумус из нута с тахини, оливковым маслом и свежей питой",
+    "price": 320,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2702_khumus-.jpg?v4",
+    "category": "appetizers",
+    "calories": 280,
+    "nutrients": {
+      "proteins": 12,
+      "fats": 18,
+      "carbs": 22
+    },
+    "weight": "200 г",
+    "ingredients": ["нут", "тахини", "оливковое масло", "лимон", "чеснок", "кумин"],
+    "allergens": ["кунжут"],
+    "tags": ["популярное", "вегетарианское", "восточное"],
+    "isPopular": true
+  },
+  {
+    "id": "viva_5",
+    "name": "Ассорти мезе",
+    "description": "Смешанная тарелка мезе с различными закусками",
+    "price": 760,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2572_assorti-meze.jpg?v4",
+    "category": "appetizers",
+    "calories": 450,
+    "nutrients": {
+      "proteins": 18,
+      "fats": 28,
+      "carbs": 35
+    },
+    "weight": "350 г",
+    "ingredients": ["хумус", "гуакамоле", "оливки", "сыр", "овощи", "хлеб"],
+    "allergens": ["молочные продукты", "глютен"],
+    "tags": ["популярное", "вегетарианское", "греческое"],
+    "isPopular": true
+  },
+  {
+    "id": "viva_6",
+    "name": "Тартар из лосося",
+    "description": "Свежий тартар из лосося с авокадо, каперсами и лимоном",
+    "price": 630,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2627_tartar-iz-lososya.jpg?v4",
+    "category": "appetizers",
+    "calories": 285,
+    "nutrients": {
+      "proteins": 32,
+      "fats": 15,
+      "carbs": 8
+    },
+    "weight": "120 г",
+    "ingredients": ["лосось", "авокадо", "каперсы", "лимон", "лук", "укроп"],
+    "allergens": ["рыба"],
+    "tags": ["премиум", "с рыбой", "свежее"],
+    "isNew": true
+  },
+  {
+    "id": "viva_7",
+    "name": "Цезарь Вива",
+    "description": "Фирменный салат Цезарь с курицей, пармезаном и соусом цезарь",
+    "price": 740,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2629_tsezar-viva.jpg?v4",
+    "category": "appetizers",
+    "calories": 420,
+    "nutrients": {
+      "proteins": 32,
+      "fats": 28,
+      "carbs": 15
+    },
+    "weight": "320 г",
+    "ingredients": ["салат романо", "куриная грудка", "пармезан", "сухарики", "соус цезарь"],
+    "allergens": ["глютен", "молочные продукты", "яйца"],
+    "tags": ["популярное", "с мясом", "сытное"],
+    "isPopular": true
+  },
+  {
+    "id": "viva_8",
+    "name": "Креветки гриль",
+    "description": "Свежие креветки на гриле с лимоном и травами",
+    "price": 980,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2569_krevetki-gril.jpg?v4",
+    "category": "mains",
+    "calories": 580,
+    "nutrients": {
+      "proteins": 42,
+      "fats": 28,
+      "carbs": 35
+    },
+    "weight": "320 г",
+    "ingredients": ["креветки", "лимон", "чеснок", "петрушка", "оливковое масло"],
+    "allergens": ["рыба"],
+    "tags": ["премиум", "с рыбой", "популярное"],
+    "isPopular": true,
+    "isFavorite": true
+  },
+  {
+    "id": "viva_9",
+    "name": "Стейк Рибай",
+    "description": "Премиальный стейк Рибай с овощами гриль",
+    "price": 2800,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2625_steyk-ribay-.jpg?v4",
+    "category": "mains",
+    "calories": 720,
+    "nutrients": {
+      "proteins": 58,
+      "fats": 35,
+      "carbs": 45
+    },
+    "weight": "450 г",
+    "ingredients": ["говядина рибай", "овощи гриль", "травы", "соль", "перец"],
+    "allergens": [],
+    "tags": ["премиум", "с мясом", "популярное"],
+    "isPopular": true,
+    "isFavorite": true
+  },
+  {
+    "id": "viva_10",
+    "name": "Бургер с котлетой из мраморной говядины",
+    "description": "Сочный бургер с мраморной говядиной, овощами и соусами",
+    "price": 940,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2582_burger-s-kotletoy-iz-mramor.jpg?v4",
+    "category": "mains",
+    "calories": 650,
+    "nutrients": {
+      "proteins": 35,
+      "fats": 28,
+      "carbs": 45
+    },
+    "weight": "380 г",
+    "ingredients": ["мраморная говядина", "булочка", "салат", "помидор", "лук", "соус"],
+    "allergens": ["глютен", "молочные продукты"],
+    "tags": ["популярное", "с мясом", "сытное"],
+    "isPopular": true
+  },
+  {
+    "id": "viva_11",
+    "name": "Лазанья с телятиной из печи",
+    "description": "Классическая итальянская лазанья с телятиной и сыром",
+    "price": 820,
+    "image": "https://vivabistro.ru/custom/viva/img/no_image.png",
+    "category": "mains",
+    "calories": 580,
+    "nutrients": {
+      "proteins": 28,
+      "fats": 22,
+      "carbs": 45
+    },
+    "weight": "350 г",
+    "ingredients": ["листы лазаньи", "телятина", "сыр", "томатный соус", "базилик"],
+    "allergens": ["глютен", "молочные продукты"],
+    "tags": ["итальянское", "с мясом", "сытное"],
+    "isPopular": false
+  },
+  {
+    "id": "viva_12",
+    "name": "Спагетти с креветками и страчателлой",
+    "description": "Паста с креветками и нежным сыром страчателла",
+    "price": 860,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2636_spagetti-s--krevetkami-i-st.jpg?v4",
+    "category": "mains",
+    "calories": 520,
+    "nutrients": {
+      "proteins": 25,
+      "fats": 18,
+      "carbs": 55
+    },
+    "weight": "320 г",
+    "ingredients": ["спагетти", "креветки", "страчателла", "чеснок", "петрушка", "оливковое масло"],
+    "allergens": ["глютен", "молочные продукты", "рыба"],
+    "tags": ["итальянское", "с рыбой", "популярное"],
+    "isPopular": true
+  },
+  {
+    "id": "viva_13",
+    "name": "Трюфельный ризотто с гребешком",
+    "description": "Премиальное ризотто с трюфелем и гребешком",
+    "price": 980,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2637_tryufelnyy-rizotto-s-grebe.jpg?v4",
+    "category": "mains",
+    "calories": 468,
+    "nutrients": {
+      "proteins": 18,
+      "fats": 22,
+      "carbs": 48
+    },
+    "weight": "300 г",
+    "ingredients": ["рис арборио", "гребешки", "трюфель", "пармезан", "белое вино"],
+    "allergens": ["молочные продукты", "рыба"],
+    "tags": ["премиум", "с рыбой", "итальянское"],
+    "isNew": true
+  },
+  {
+    "id": "viva_14",
+    "name": "Поке с лососем",
+    "description": "Гавайское блюдо поке с лососем, рисом и овощами",
+    "price": 620,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2698_poke-s-lososem.jpg?v4",
+    "category": "mains",
+    "calories": 420,
+    "nutrients": {
+      "proteins": 25,
+      "fats": 15,
+      "carbs": 35
+    },
+    "weight": "280 г",
+    "ingredients": ["лосось", "рис", "авокадо", "огурец", "водоросли", "соус"],
+    "allergens": ["рыба"],
+    "tags": ["с рыбой", "азиатское", "здоровое"],
+    "isPopular": false
+  },
+  {
+    "id": "viva_15",
+    "name": "Филадельфия V.I.V.A.",
+    "description": "Фирменный ролл Филадельфия с лососем и сливочным сыром",
+    "price": 630,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2691_filadelfiya-viva.jpg?v4",
+    "category": "mains",
+    "calories": 380,
+    "nutrients": {
+      "proteins": 18,
+      "fats": 12,
+      "carbs": 45
+    },
+    "weight": "200 г",
+    "ingredients": ["рис", "лосось", "сливочный сыр", "нори", "огурец"],
+    "allergens": ["рыба", "молочные продукты"],
+    "tags": ["с рыбой", "азиатское", "популярное"],
+    "isPopular": true
+  },
+  {
+    "id": "viva_16",
+    "name": "Том ям",
+    "description": "Острый тайский суп с креветками и грибами",
+    "price": 750,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2689_tom-yam.jpg?v4",
+    "category": "soups",
+    "calories": 280,
+    "nutrients": {
+      "proteins": 15,
+      "fats": 8,
+      "carbs": 25
+    },
+    "weight": "350 мл",
+    "ingredients": ["креветки", "грибы", "лайм", "чили", "лемонграсс", "кокосовое молоко"],
+    "allergens": ["рыба"],
+    "tags": ["острое", "азиатское", "с рыбой"],
+    "isPopular": false
+  },
+  {
+    "id": "viva_17",
+    "name": "Овощной крем-супчик",
+    "description": "Нежный крем-суп из свежих овощей",
+    "price": 250,
+    "image": "https://vivabistro.ru/userfls/viva/shop/goods_list/2743_ovoschnoy-krem-supchik.jpg?v4",
+    "category": "soups",
+    "calories": 180,
+    "nutrients": {
+      "proteins": 6,
+      "fats": 8,
+      "carbs": 22
+    },
+    "weight": "300 мл",
+    "ingredients": ["овощи", "сливки", "лук", "чеснок", "травы"],
+    "allergens": ["молочные продукты"],
+    "tags": ["вегетарианское", "здоровое"],
+    "isPopular": false
+  },
+  {
+    "id": "viva_18",
+    "name": "Домашний лимонад",
+    "description": "Освежающий лимонад с мятой и лаймом",
+    "price": 250,
+    "image": "https://images.unsplash.com/photo-1573500883698-e3ef47a95feb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmVzaCUyMGxlbW9uYWRlJTIwZHJpbmt8ZW58MXx8fHwxNzYwOTc3MDQzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "category": "drinks",
+    "calories": 85,
+    "nutrients": {
+      "proteins": 0.2,
+      "fats": 0.1,
+      "carbs": 21.5
+    },
+    "weight": "400 мл",
+    "ingredients": ["лимон", "лайм", "мята", "сахарный сироп", "газированная вода"],
+    "allergens": [],
+    "tags": ["безалкогольное", "освежающее"],
+    "isPopular": true
+  },
+  {
+    "id": "viva_19",
+    "name": "Свежевыжатый апельсиновый сок",
+    "description": "Натуральный сок из свежих апельсинов",
+    "price": 280,
+    "image": "https://images.unsplash.com/photo-1622624298402-34829e10f911?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvcmFuZ2UlMjBqdWljZSUyMGdsYXNzfGVufDF8fHx8MTc2MDkxNTcxMnww&ixlib=rb-4.1.0&q=80&w=1080",
+    "category": "drinks",
+    "calories": 112,
+    "nutrients": {
+      "proteins": 1.8,
+      "fats": 0.5,
+      "carbs": 26.2
+    },
+    "weight": "300 мл",
+    "ingredients": ["апельсины"],
+    "allergens": [],
+    "tags": ["безалкогольное", "натуральное", "витамины"],
+    "isFavorite": true
+  },
+  {
+    "id": "viva_20",
+    "name": "Лимончелло",
+    "description": "Традиционный итальянский ликер из лимонной цедры",
+    "price": 450,
+    "image": "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsaW1vbmNlbGxvJTIwYWxjb2hvbHxlbnwxfHx8fDE3NjA5ODU2ODd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    "category": "drinks",
+    "calories": 320,
+    "nutrients": {
+      "proteins": 0.1,
+      "fats": 0.1,
+      "carbs": 28.5
+    },
+    "weight": "50 мл",
+    "ingredients": ["лимонная цедра", "спирт", "сахар", "вода"],
+    "allergens": [],
+    "tags": ["алкогольное", "премиум", "итальянское"],
+    "isNew": true
+  },
+  {
     id: 'viva_1',
     name: 'Гуакамоле',
     description: 'Мексиканская закуска из авокадо с томатами, луком и специями',
@@ -151,6 +535,21 @@ export const restaurantMenu: MenuItem[] = [
     allergens: ['яйца'],
     tags: ['премиум', 'с мясом'],
     isNew: true
+  },
+  {
+    id: 'viva_11',
+    name: 'Креветки и кальмары жареные в масле нуазет',
+    description: 'Креветки и кальмары, обжаренные в сливочном масле с травами',
+    price: 550,
+    image: 'https://vivabistro.ru/custom/viva/img/no_image.png',
+    category: 'appetizers',
+    calories: 380,
+    nutrients: { proteins: 28, fats: 22, carbs: 8 },
+    weight: '180 г',
+    ingredients: ['креветки', 'кальмары', 'сливочное масло', 'чеснок', 'петрушка'],
+    allergens: ['рыба', 'молочные продукты'],
+    tags: ['с рыбой', 'премиум'],
+    isPopular: false
   },
   {
     id: 'viva_12',
@@ -539,6 +938,21 @@ export const restaurantMenu: MenuItem[] = [
     isPopular: false
   },
   {
+    id: 'viva_37',
+    name: 'Пицца с томатами и страчателлой',
+    description: 'Пицца с томатами и нежным сыром страчателла',
+    price: 650,
+    image: 'https://vivabistro.ru/custom/viva/img/no_image.png',
+    category: 'mains',
+    calories: 450,
+    nutrients: { proteins: 20, fats: 20, carbs: 50 },
+    weight: '330 г',
+    ingredients: ['тесто для пиццы', 'томаты', 'страчателла', 'базилик', 'оливковое масло'],
+    allergens: ['глютен', 'молочные продукты'],
+    tags: ['вегетарианское', 'итальянское'],
+    isPopular: false
+  },
+  {
     id: 'viva_38',
     name: 'Говядина с грибами и брокколи',
     description: 'Пицца с говядиной, грибами и брокколи',
@@ -551,6 +965,21 @@ export const restaurantMenu: MenuItem[] = [
     ingredients: ['тесто для пиццы', 'говядина', 'грибы', 'брокколи', 'сыр', 'соус'],
     allergens: ['глютен', 'молочные продукты'],
     tags: ['с мясом', 'итальянское'],
+    isPopular: false
+  },
+  {
+    id: 'viva_39',
+    name: 'Барбекю',
+    description: 'Пицца с соусом барбекю и мясом',
+    price: 670,
+    image: 'https://vivabistro.ru/custom/viva/img/no_image.png',
+    category: 'mains',
+    calories: 520,
+    nutrients: { proteins: 28, fats: 22, carbs: 48 },
+    weight: '340 г',
+    ingredients: ['тесто для пиццы', 'мясо', 'соус барбекю', 'лук', 'сыр'],
+    allergens: ['глютен', 'молочные продукты'],
+    tags: ['с мясом', 'американское'],
     isPopular: false
   },
   {
@@ -581,6 +1010,21 @@ export const restaurantMenu: MenuItem[] = [
     ingredients: ['тесто для пиццы', 'чоризо', 'чили', 'сыр', 'лук'],
     allergens: ['глютен', 'молочные продукты'],
     tags: ['острое', 'с мясом', 'испанское'],
+    isPopular: false
+  },
+  {
+    id: 'viva_42',
+    name: 'Карбонара',
+    description: 'Пицца в стиле карбонара с беконом и яйцом',
+    price: 530,
+    image: 'https://vivabistro.ru/custom/viva/img/no_image.png',
+    category: 'mains',
+    calories: 480,
+    nutrients: { proteins: 22, fats: 20, carbs: 45 },
+    weight: '330 г',
+    ingredients: ['тесто для пиццы', 'бекон', 'яйцо', 'сыр', 'черный перец'],
+    allergens: ['глютен', 'молочные продукты', 'яйца'],
+    tags: ['с мясом', 'итальянское'],
     isPopular: false
   },
 
@@ -860,6 +1304,36 @@ export const restaurantMenu: MenuItem[] = [
     isPopular: false
   },
   {
+    id: 'viva_61',
+    name: 'Лазанья с телятиной из печи',
+    description: 'Классическая итальянская лазанья с телятиной и сыром',
+    price: 820,
+    image: 'https://vivabistro.ru/custom/viva/img/no_image.png',
+    category: 'mains',
+    calories: 580,
+    nutrients: { proteins: 28, fats: 22, carbs: 45 },
+    weight: '350 г',
+    ingredients: ['листы лазаньи', 'телятина', 'сыр', 'томатный соус', 'базилик'],
+    allergens: ['глютен', 'молочные продукты'],
+    tags: ['итальянское', 'с мясом', 'сытное'],
+    isPopular: false
+  },
+  {
+    id: 'viva_62',
+    name: 'Спагетти с креветками и страчателлой',
+    description: 'Паста с креветками и нежным сыром страчателла',
+    price: 860,
+    image: 'https://vivabistro.ru/userfls/viva/shop/goods_list/2636_spagetti-s--krevetkami-i-st.jpg?v4',
+    category: 'mains',
+    calories: 520,
+    nutrients: { proteins: 25, fats: 18, carbs: 55 },
+    weight: '320 г',
+    ingredients: ['спагетти', 'креветки', 'страчателла', 'чеснок', 'петрушка', 'оливковое масло'],
+    allergens: ['глютен', 'молочные продукты', 'рыба'],
+    tags: ['итальянское', 'с рыбой', 'популярное'],
+    isPopular: true
+  },
+  {
     id: 'viva_63',
     name: 'Греча с говядиной и муссом из пармезана',
     description: 'Гречка с говядиной и воздушным муссом из пармезана',
@@ -903,6 +1377,21 @@ export const restaurantMenu: MenuItem[] = [
     allergens: ['молочные продукты', 'рыба'],
     tags: ['премиум', 'с рыбой', 'итальянское'],
     isNew: true
+  },
+  {
+    id: 'viva_66',
+    name: 'Утиная ножка конфи с гречей',
+    description: 'Утиная ножка конфи с гречкой и соусом',
+    price: 870,
+    image: 'https://vivabistro.ru/custom/viva/img/no_image.png',
+    category: 'mains',
+    calories: 580,
+    nutrients: { proteins: 35, fats: 28, carbs: 25 },
+    weight: '350 г',
+    ingredients: ['утиная ножка', 'гречка', 'овощи', 'соус', 'травы'],
+    allergens: [],
+    tags: ['премиум', 'с мясом', 'французское'],
+    isPopular: false
   },
   {
     id: 'viva_67',
@@ -1217,7 +1706,7 @@ export const restaurantMenu: MenuItem[] = [
     name: 'Домашний лимонад',
     description: 'Освежающий лимонад с мятой и лаймом',
     price: 250,
-    image: '/images/lemonade.jpg',
+    image: 'https://images.unsplash.com/photo-1573500883698-e3ef47a95feb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmVzaCUyMGxlbW9uYWRlJTIwZHJpbmt8ZW58MXx8fHwxNzYwOTc3MDQzfDA&ixlib=rb-4.1.0&q=80&w=1080',
     category: 'drinks',
     calories: 85,
     nutrients: { proteins: 0.2, fats: 0.1, carbs: 21.5 },
@@ -1229,107 +1718,17 @@ export const restaurantMenu: MenuItem[] = [
   },
   {
     id: 'viva_88',
-    name: 'Чёрный с пенкой',
-    description: 'Классический чёрный кофе с пенкой',
-    price: 200,
-    image: '/images/chernyy-s-penkoy.webp',
-    category: 'drinks',
-    calories: 5,
-    nutrients: { proteins: 0.1, fats: 0, carbs: 0 },
-    weight: '300 гр',
-    ingredients: ['кофе', 'вода'],
-    allergens: [],
-    tags: ['кофе', 'горячее'],
-    isPopular: false
-  },
-  {
-    id: 'viva_89',
-    name: 'Латте "Смородина-Эрл Грей"',
-    description: 'Латте с добавлением смородины и чая Эрл Грей',
-    price: 320,
-    image: '/images/latte-smorodina-erl-grey.webp',
-    category: 'drinks',
-    calories: 120,
-    nutrients: { proteins: 4.1, fats: 4.6, carbs: 12 },
-    weight: '320 гр',
-    ingredients: ['эспрессо', 'молоко', 'сироп смородины', 'чай Эрл Грей'],
-    allergens: ['молочные продукты'],
-    tags: ['кофе', 'горячее', 'с молоком'],
-    isPopular: false
-  },
-  {
-    id: 'viva_90',
-    name: 'Флэт уайт',
-    description: 'Более кофейный вариант капучино с более тонкой пеной',
+    name: 'Свежевыжатый апельсиновый сок',
+    description: 'Натуральный сок из свежих апельсинов',
     price: 280,
-    image: '/images/flet-uayt.webp',
+    image: 'https://images.unsplash.com/photo-1622624298402-34829e10f911?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvcmFuZ2UlMjBqdWljZSUyMGdsYXNzfGVufDF8fHx8MTc2MDkxNTcxMnww&ixlib=rb-4.1.0&q=80&w=1080',
     category: 'drinks',
-    calories: 9,
-    nutrients: { proteins: 4.1, fats: 4.6, carbs: 7.3 },
-    weight: '180 гр',
-    ingredients: ['эспрессо', 'молоко'],
-    allergens: ['молочные продукты'],
-    tags: ['кофе', 'горячее', 'с молоком'],
-    isPopular: false
-  },
-  {
-    id: 'viva_91',
-    name: 'Латте',
-    description: 'Лёгкий молочный кофейный напиток',
-    price: 280,
-    image: '/images/latte-new.webp',
-    category: 'drinks',
-    calories: 9,
-    nutrients: { proteins: 4.1, fats: 4.6, carbs: 7.3 },
-    weight: '300 гр',
-    ingredients: ['эспрессо', 'молоко'],
-    allergens: ['молочные продукты'],
-    tags: ['кофе', 'горячее', 'с молоком'],
-    isPopular: true
-  },
-  {
-    id: 'viva_92',
-    name: 'Морс брусничный',
-    description: 'Морс из уральской брусники',
-    price: 250,
-    image: '/images/mors-brusnichnyy.webp',
-    category: 'drinks',
-    calories: 51.8,
-    nutrients: { proteins: 0.1, fats: 0.1, carbs: 12.6 },
-    weight: '330 гр',
-    ingredients: ['брусника', 'сахар', 'вода'],
+    calories: 112,
+    nutrients: { proteins: 1.8, fats: 0.5, carbs: 26.2 },
+    weight: '300 мл',
+    ingredients: ['апельсины'],
     allergens: [],
-    tags: ['безалкогольное', 'освежающее', 'ягодное'],
-    isPopular: false
-  },
-  {
-    id: 'viva_93',
-    name: 'Черная смородина',
-    description: 'Лимонад на основе сиропа черной смородины, собранных ягод с земель Урала',
-    price: 250,
-    image: '/images/chernaya-smorodina.webp',
-    category: 'drinks',
-    calories: 60,
-    nutrients: { proteins: 0.2, fats: 0.1, carbs: 15 },
-    weight: '330 гр',
-    ingredients: ['черная смородина', 'сироп', 'газированная вода'],
-    allergens: [],
-    tags: ['безалкогольное', 'освежающее', 'ягодное'],
-    isPopular: false
-  },
-  {
-    id: 'viva_94',
-    name: 'Колокольчик',
-    description: 'Название напитка связано со старорусским напитком из колокольного мёда, который готовили из нектара, выделяемого нектарниками колокольчиков. Мы воспроизвели рецепт легендарного советского лимонада',
-    price: 250,
-    image: '/images/kolokolchik.webp',
-    category: 'drinks',
-    calories: 55,
-    nutrients: { proteins: 0.1, fats: 0, carbs: 14 },
-    weight: '330 гр',
-    ingredients: ['мед', 'лимон', 'газированная вода'],
-    allergens: [],
-    tags: ['безалкогольное', 'освежающее', 'классическое'],
-    isPopular: false
+    tags: ['безалкогольное', 'натуральное', 'витамины'],
+    isFavorite: true
   }
 ];

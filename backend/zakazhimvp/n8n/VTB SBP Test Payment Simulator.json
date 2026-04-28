@@ -1,0 +1,218 @@
+{
+  "name": "VTB SBP Test Payment Simulator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "test-payment-simulate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-simulate",
+      "name": "Webhook - Simulate Payment",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "test-payment-simulate"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Парсинг данных для симуляции платежа\n// В тестовом режиме симулируем успешную оплату\n\nconsole.log('=== VTB SBP Test Payment Simulator ===');\nconsole.log('Input:', JSON.stringify($input, null, 2));\n\n// Получаем данные из body\nlet requestData = null;\n\nif ($input.item && $input.item.json && $input.item.json.body) {\n  const body = $input.item.json.body;\n  requestData = typeof body === 'string' ? JSON.parse(body) : body;\n} else if ($input.item && $input.item.json) {\n  requestData = $input.item.json;\n} else if ($input.body) {\n  requestData = typeof $input.body === 'string' ? JSON.parse($input.body) : $input.body;\n}\n\nif (!requestData) {\n  return {\n    json: {\n      error: true,\n      message: '❌ Ошибка: данные не найдены в запросе',\n      errorCode: 'MISSING_DATA'\n    }\n  };\n}\n\n// Извлекаем параметры\nconst orderId = requestData.orderId;\nconst qrId = requestData.qrId;\nconst status = requestData.status || 'PAID'; // PAID, REJECTED_BY_USER, EXPIRED\nconst amount = requestData.amount || 0;\nconst orderNumber = requestData.orderNumber || 'UNKNOWN';\n\nif (!orderId || !qrId) {\n  return {\n    json: {\n      error: true,\n      message: '❌ Ошибка: не указаны orderId или qrId',\n      errorCode: 'MISSING_IDS'\n    }\n  };\n}\n\nconsole.log('Simulating payment:');\nconsole.log('Order ID:', orderId);\nconsole.log('QR ID:', qrId);\nconsole.log('Status:', status);\n\n// Симулируем webhook от VTB\nconst webhookPayload = {\n  orderId: orderId,\n  qrId: qrId,\n  status: status,\n  amount: amount,\n  currency: 643,\n  orderNumber: orderNumber,\n  timestamp: new Date().toISOString()\n};\n\nreturn {\n  json: {\n    success: true,\n    message: `Платеж успешно симулирован со статусом: ${status}`,\n    webhookPayload: webhookPayload,\n    \n    // Данные для отправки на webhook обработки платежей\n    orderId: orderId,\n    qrId: qrId,\n    status: status,\n    amount: amount,\n    orderNumber: orderNumber\n  }\n};"
+      },
+      "id": "prepare-simulation",
+      "name": "Prepare Simulation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-error",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-error",
+      "name": "If Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.zakazhi.online/webhook-test/0dc3f33a-c461-483f-9849-08a504686f9c",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ $json.webhookPayload }}",
+        "options": {}
+      },
+      "id": "send-webhook",
+      "name": "Send to Payment Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Форматирование ответа после симуляции\n\nconst simulationData = $('Prepare Simulation').item.json;\nconst webhookResponse = $input.item ? $input.item.json : $input.json;\n\nreturn {\n  json: {\n    success: true,\n    message: 'Платеж успешно симулирован и отправлен на обработку',\n    \n    // Данные симуляции\n    orderId: simulationData.orderId,\n    qrId: simulationData.qrId,\n    status: simulationData.status,\n    amount: simulationData.amount,\n    orderNumber: simulationData.orderNumber,\n    \n    // Ответ от webhook обработчика\n    webhookResponse: webhookResponse,\n    \n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "format-response",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": false, \"error\": $json.message || \"Unknown error\", \"errorCode\": $json.errorCode } }}",
+        "options": {}
+      },
+      "id": "respond-error",
+      "name": "Respond - Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        900,
+        400
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Simulate Payment": {
+      "main": [
+        [
+          {
+            "node": "Prepare Simulation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Simulation": {
+      "main": [
+        [
+          {
+            "node": "If Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Error": {
+      "main": [
+        [
+          {
+            "node": "Respond - Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send to Payment Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Payment Webhook": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "vtb-sbp-simulator-v1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "6039fc29fe4ac65ea1725fdf96ede33412c4e3d72ed06fe6c55a0d9d93ba077a"
+  },
+  "id": "VTBSBPSimulator",
+  "tags": []
+}
+
+
+
+
+

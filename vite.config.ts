@@ -4,7 +4,6 @@
   import path from 'path';
 
   export default defineConfig({
-  base: '/mvp/',
     plugins: [react()],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
@@ -53,38 +52,9 @@
     build: {
       target: 'esnext',
       outDir: 'build',
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            // Vendor chunks
-            'vendor-react': ['react', 'react-dom'],
-            'vendor-motion': ['motion/react'],
-            'vendor-radix': [
-              '@radix-ui/react-dialog',
-              '@radix-ui/react-select',
-              '@radix-ui/react-popover',
-            ],
-            'vendor-ui': ['lucide-react', 'sonner'],
-            // Feature chunks
-            'feature-collections': ['./src/components/CollectionsScreenNew'],
-            'feature-menu': ['./src/components/MenuScreenNew'],
-            'feature-ai': ['./src/components/AIAssistantNew'],
-            'feature-cart': ['./src/components/CartScreenNew'],
-          },
-        },
-      },
-      chunkSizeWarningLimit: 600,
     },
     server: {
       port: 3000,
       open: true,
-      proxy: {
-        '/api/n8n': {
-          target: 'https://n8n.zakazhi.online',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/n8n/, ''),
-          secure: true,
-        },
-      },
     },
   });

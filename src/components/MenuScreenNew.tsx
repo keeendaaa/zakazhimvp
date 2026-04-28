@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { MenuItem } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { Plus, Search, Filter, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import ItemDetailSheet from './ItemDetailSheet';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from './ui/sheet';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -27,168 +26,19 @@ interface MenuScreenNewProps {
 }
 
 const categoryLabels = {
-  all: 'Все',
   appetizers: 'Закуски',
   soups: 'Супы',
   mains: 'Основные блюда',
+  desserts: 'Десерты',
   drinks: 'Напитки',
 };
 
 export default function MenuScreenNew({ menuItems, onAddToCart }: MenuScreenNewProps) {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-  const [activeCategory, setActiveCategory] = useState<keyof typeof categoryLabels>('all');
-  const [shuffledAllItems, setShuffledAllItems] = useState<MenuItem[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [excludedAllergens, setExcludedAllergens] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
-  const [caloriesRange, setCaloriesRange] = useState<[number, number]>([0, 2000]);
-  const [showOnlyPopular, setShowOnlyPopular] = useState(false);
-  const [showOnlyNew, setShowOnlyNew] = useState(false);
-  const [showOnlyFavorite, setShowOnlyFavorite] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<keyof typeof categoryLabels>('appetizers');
 
   const categories = Object.keys(categoryLabels) as Array<keyof typeof categoryLabels>;
-  
-  // Shuffle all items when "all" category is selected
-  useEffect(() => {
-    if (activeCategory === 'all') {
-      const shuffled = [...menuItems].sort(() => Math.random() - 0.5);
-      setShuffledAllItems(shuffled);
-    }
-  }, [activeCategory, menuItems]);
-  
-  // Get all unique tags from menu items in current category
-  const allTags = Array.from(
-    new Set(
-      (activeCategory === 'all' ? menuItems : menuItems.filter(item => item.category === activeCategory))
-        .flatMap(item => item.tags || [])
-    )
-  ).sort();
-
-  // Get all unique allergens from menu items in current category
-  const allAllergens = Array.from(
-    new Set(
-      (activeCategory === 'all' ? menuItems : menuItems.filter(item => item.category === activeCategory))
-        .flatMap(item => item.allergens || [])
-    )
-  ).sort();
-
-  // Get price range from menu items
-  const categoryItems = activeCategory === 'all' ? menuItems : menuItems.filter(item => item.category === activeCategory);
-  const minPrice = categoryItems.length > 0 ? Math.min(...categoryItems.map(item => item.price || 0)) : 0;
-  const maxPrice = categoryItems.length > 0 ? Math.max(...categoryItems.map(item => item.price || 0)) : 10000;
-  const minCalories = categoryItems.length > 0 ? Math.min(...categoryItems.map(item => item.calories || 0).filter(c => c > 0)) : 0;
-  const maxCalories = categoryItems.length > 0 ? Math.max(...categoryItems.map(item => item.calories || 0)) : 2000;
-
-  // Reset ranges when category changes
-  useEffect(() => {
-    setPriceRange([minPrice, maxPrice]);
-    setCaloriesRange([minCalories, maxCalories]);
-  }, [activeCategory, minPrice, maxPrice, minCalories, maxCalories]);
-
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) 
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    );
-  };
-
-  const toggleAllergen = (allergen: string) => {
-    setExcludedAllergens(prev => 
-      prev.includes(allergen) 
-        ? prev.filter(a => a !== allergen)
-        : [...prev, allergen]
-    );
-  };
-
-  const clearFilters = () => {
-    setSelectedTags([]);
-    setExcludedAllergens([]);
-    setPriceRange([minPrice, maxPrice]);
-    setCaloriesRange([minCalories, maxCalories]);
-    setShowOnlyPopular(false);
-    setShowOnlyNew(false);
-    setShowOnlyFavorite(false);
-  };
-
-  const hasActiveFilters = () => {
-    return (
-      selectedTags.length > 0 ||
-      excludedAllergens.length > 0 ||
-      priceRange[0] !== minPrice ||
-      priceRange[1] !== maxPrice ||
-      caloriesRange[0] !== minCalories ||
-      caloriesRange[1] !== maxCalories ||
-      showOnlyPopular ||
-      showOnlyNew ||
-      showOnlyFavorite
-    );
-  };
-
-  const activeFiltersCount = () => {
-    let count = 0;
-    if (selectedTags.length > 0) count += selectedTags.length;
-    if (excludedAllergens.length > 0) count += excludedAllergens.length;
-    if (priceRange[0] !== minPrice || priceRange[1] !== maxPrice) count += 1;
-    if (caloriesRange[0] !== minCalories || caloriesRange[1] !== maxCalories) count += 1;
-    if (showOnlyPopular) count += 1;
-    if (showOnlyNew) count += 1;
-    if (showOnlyFavorite) count += 1;
-    return count;
-  };
-
-  // Filter items based on category, search query and all filters
-  const filteredItems = (activeCategory === 'all' ? shuffledAllItems : menuItems).filter(item => {
-    const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
-    if (!matchesCategory) return false;
-    
-    // Search filter
-    if (searchQuery) {
-      const matchesSearch = (
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-      if (!matchesSearch) return false;
-    }
-    
-    // Tags filter
-    if (selectedTags.length > 0) {
-      const matchesTags = selectedTags.some(tag => 
-        item.tags?.includes(tag)
-      );
-      if (!matchesTags) return false;
-    }
-    
-    // Allergens filter (exclude items with selected allergens)
-    if (excludedAllergens.length > 0) {
-      const hasExcludedAllergen = excludedAllergens.some(allergen =>
-        item.allergens?.includes(allergen)
-      );
-      if (hasExcludedAllergen) return false;
-    }
-    
-    // Price filter
-    const itemPrice = item.price || 0;
-    if (itemPrice < priceRange[0] || itemPrice > priceRange[1]) return false;
-    
-    // Calories filter
-    const itemCalories = item.calories || 0;
-    if (itemCalories > 0 && (itemCalories < caloriesRange[0] || itemCalories > caloriesRange[1])) return false;
-    
-    // Popular filter
-    if (showOnlyPopular && !item.isPopular) return false;
-    
-    // New filter
-    if (showOnlyNew && !item.isNew) return false;
-    
-    // Favorite filter
-    if (showOnlyFavorite && !item.isFavorite) return false;
-    
-    return true;
-  });
+  const filteredItems = menuItems.filter(item => item.category === activeCategory);
 
   return (
     <motion.div 
@@ -202,68 +52,29 @@ export default function MenuScreenNew({ menuItems, onAddToCart }: MenuScreenNewP
       <div className="sticky top-0 z-40 bg-gray-50 pt-6 px-4">
         <h1 className="mb-6">Меню</h1>
         
-        {/* Search Bar */}
-        <motion.div 
-          className="mb-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="relative flex items-center">
-            <input
-              type="text"
-              placeholder="Поиск блюд..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pr-12 py-3 bg-white rounded-2xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all text-base"
-              style={{ paddingLeft: '16px' }}
-            />
-            <Search className="absolute right-4 text-gray-400 w-5 h-5 pointer-events-none" />
-          </div>
-        </motion.div>
-        
-        {/* Category tabs and filters */}
-        <div className="flex items-center gap-4 pb-4">
-          <div className="flex gap-6 overflow-x-auto scrollbar-hide flex-1">
-            {categories.map(category => (
-              <motion.button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`pb-2 whitespace-nowrap transition-all relative ${
-                  activeCategory === category
-                    ? 'text-gray-900'
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-                whileTap={{ scale: 0.95 }}
-              >
-                {categoryLabels[category]}
-                {activeCategory === category && (
-                  <motion.div
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900"
-                    layoutId="activeTab"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </motion.button>
-            ))}
-          </div>
-          <motion.button
-            onClick={() => setShowFilters(true)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all whitespace-nowrap flex-shrink-0 ${
-              hasActiveFilters()
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-            }`}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Filter className="w-4 h-4" />
-            <span>Фильтры</span>
-            {hasActiveFilters() && (
-              <span className="bg-white text-blue-600 rounded-full px-2 py-0.5 text-xs font-semibold">
-                {activeFiltersCount()}
-              </span>
-            )}
-          </motion.button>
+        {/* Category tabs */}
+        <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+          {categories.map(category => (
+            <motion.button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`pb-2 whitespace-nowrap transition-all relative ${
+                activeCategory === category
+                  ? 'text-gray-900'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+              whileTap={{ scale: 0.95 }}
+            >
+              {categoryLabels[category]}
+              {activeCategory === category && (
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900"
+                  layoutId="activeTab"
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          ))}
         </div>
       </div>
 
@@ -412,208 +223,6 @@ export default function MenuScreenNew({ menuItems, onAddToCart }: MenuScreenNewP
           onItemSelect={setSelectedItem}
         />
       )}
-
-      {/* Filters Sheet */}
-      <Sheet open={showFilters} onOpenChange={setShowFilters}>
-        <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl overflow-y-auto p-0">
-          <div className="px-6 pt-6">
-            <SheetHeader>
-              <div className="flex items-center justify-between mb-4">
-                <SheetTitle>Фильтры</SheetTitle>
-                <div className="flex items-center gap-3">
-                  {hasActiveFilters() && (
-                    <button
-                      onClick={clearFilters}
-                      className="text-sm text-blue-600 hover:text-blue-700"
-                    >
-                      Сбросить все
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setShowFilters(false)}
-                    className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                    aria-label="Закрыть"
-                  >
-                    <X className="w-5 h-5 text-gray-600" />
-                  </button>
-                </div>
-              </div>
-            </SheetHeader>
-          </div>
-          
-          <div className="px-6 mt-6 space-y-6 pb-6">
-            {/* Quick Filters */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Быстрые фильтры</h3>
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                <motion.button
-                  onClick={() => setShowOnlyPopular(!showOnlyPopular)}
-                  className={`px-4 py-2 rounded-full text-sm transition-all whitespace-nowrap flex-shrink-0 ${
-                    showOnlyPopular
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  ⭐ Популярные
-                </motion.button>
-                <motion.button
-                  onClick={() => setShowOnlyNew(!showOnlyNew)}
-                  className={`px-4 py-2 rounded-full text-sm transition-all whitespace-nowrap flex-shrink-0 ${
-                    showOnlyNew
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  🆕 Новинки
-                </motion.button>
-                <motion.button
-                  onClick={() => setShowOnlyFavorite(!showOnlyFavorite)}
-                  className={`px-4 py-2 rounded-full text-sm transition-all whitespace-nowrap flex-shrink-0 ${
-                    showOnlyFavorite
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  ❤️ Избранное
-                </motion.button>
-              </div>
-            </div>
-
-            {/* Tags Filter */}
-            {allTags.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Теги</h3>
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                  {allTags.map(tag => {
-                    const isSelected = selectedTags.includes(tag);
-                    return (
-                      <motion.button
-                        key={tag}
-                        onClick={() => toggleTag(tag)}
-                        className={`px-4 py-2 rounded-full text-sm transition-all whitespace-nowrap flex-shrink-0 ${
-                          isSelected
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        {tag}
-                      </motion.button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Allergens Filter */}
-            {allAllergens.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Исключить аллергены</h3>
-                <p className="text-xs text-gray-500 mb-3">
-                  Выберите аллергены, которые нужно исключить из результатов
-                </p>
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                  {allAllergens.map(allergen => {
-                    const isExcluded = excludedAllergens.includes(allergen);
-                    return (
-                      <motion.button
-                        key={allergen}
-                        onClick={() => toggleAllergen(allergen)}
-                        className={`px-4 py-2 rounded-full text-sm transition-all whitespace-nowrap flex-shrink-0 ${
-                          isExcluded
-                            ? 'bg-red-100 text-red-700 border-2 border-red-300'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        {isExcluded && '✕ '}
-                        {allergen}
-                      </motion.button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Price Range */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                Цена: {priceRange[0]} ₽ - {priceRange[1]} ₽
-              </h3>
-              <div className="space-y-2">
-                <div className="flex gap-4 items-center">
-                  <input
-                    type="number"
-                    min={minPrice}
-                    max={maxPrice}
-                    value={priceRange[0]}
-                    onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  />
-                  <span className="text-gray-400">—</span>
-                  <input
-                    type="number"
-                    min={minPrice}
-                    max={maxPrice}
-                    value={priceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  />
-                </div>
-                <input
-                  type="range"
-                  min={minPrice}
-                  max={maxPrice}
-                  value={priceRange[1]}
-                  onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                  className="w-full"
-                />
-              </div>
-            </div>
-
-            {/* Calories Range */}
-            {maxCalories > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                  Калории: {caloriesRange[0]} - {caloriesRange[1]} ккал
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex gap-4 items-center">
-                    <input
-                      type="number"
-                      min={minCalories}
-                      max={maxCalories}
-                      value={caloriesRange[0]}
-                      onChange={(e) => setCaloriesRange([Number(e.target.value), caloriesRange[1]])}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    />
-                    <span className="text-gray-400">—</span>
-                    <input
-                      type="number"
-                      min={minCalories}
-                      max={maxCalories}
-                      value={caloriesRange[1]}
-                      onChange={(e) => setCaloriesRange([caloriesRange[0], Number(e.target.value)])}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <input
-                    type="range"
-                    min={minCalories}
-                    max={maxCalories}
-                    value={caloriesRange[1]}
-                    onChange={(e) => setCaloriesRange([caloriesRange[0], Number(e.target.value)])}
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        </SheetContent>
-      </Sheet>
     </motion.div>
   );
 }

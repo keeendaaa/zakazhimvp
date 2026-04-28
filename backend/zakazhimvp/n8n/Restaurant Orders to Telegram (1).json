@@ -1,0 +1,121 @@
+{
+  "name": "Restaurant Orders to Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Рабочий код для n8n - данные приходят в body\n// Используйте этот код в узле Code\n\nconsole.log('=== НАЧАЛО ОБРАБОТКИ ===');\nconsole.log('$input:', JSON.stringify($input, null, 2));\n\n// Получаем данные из body\nlet orderData = null;\n\n// В n8n данные из Webhook приходят в body\nif ($input.item && $input.item.json && $input.item.json.body) {\n  // Данные в body (может быть строка или объект)\n  const body = $input.item.json.body;\n  orderData = typeof body === 'string' ? JSON.parse(body) : body;\n  console.log('✅ Данные найдены в: $input.item.json.body');\n} else if ($input.item && $input.item.json) {\n  // Данные напрямую в json\n  orderData = $input.item.json;\n  console.log('✅ Данные найдены в: $input.item.json');\n} else if ($input.body) {\n  // Альтернативный вариант\n  orderData = typeof $input.body === 'string' ? JSON.parse($input.body) : $input.body;\n  console.log('✅ Данные найдены в: $input.body');\n} else {\n  console.error('❌ Данные не найдены!');\n  return {\n    json: {\n      message: '❌ Ошибка: данные не найдены в body',\n      orderNumber: 'ERROR',\n      totalAmount: 0\n    }\n  };\n}\n\nconsole.log('orderData:', JSON.stringify(orderData, null, 2));\n\n// Проверяем наличие данных\nif (!orderData) {\n  return {\n    json: {\n      message: '❌ Ошибка: нет данных заказа',\n      orderNumber: 'ERROR',\n      totalAmount: 0\n    }\n  };\n}\n\n// Извлекаем данные\nconst orderNumber = orderData.orderNumber || 'UNKNOWN';\nconst totalAmount = orderData.totalAmount || 0;\nconst time = orderData.time || 'не указано';\nconst date = orderData.date || 'не указано';\n\nconsole.log('orderNumber:', orderNumber);\nconsole.log('totalAmount:', totalAmount);\nconsole.log('has items:', !!orderData.items);\nconsole.log('items type:', typeof orderData.items);\nconsole.log('items is array:', Array.isArray(orderData.items));\n\n// Форматируем список блюд\nlet itemsText = '';\n\nif (orderData.items && Array.isArray(orderData.items) && orderData.items.length > 0) {\n  console.log('Обработка items, количество:', orderData.items.length);\n  \n  orderData.items.forEach((item, index) => {\n    try {\n      console.log(`Обработка item ${index}:`, JSON.stringify(item, null, 2));\n      \n      // Проверяем структуру элемента\n      if (!item || !item.item) {\n        console.warn(`Item ${index}: нет данных о блюде`);\n        itemsText += `${index + 1}. [Ошибка: нет данных о блюде]\\n`;\n        return;\n      }\n      \n      const itemName = item.item.name || 'Неизвестное блюдо';\n      const quantity = item.quantity || 1;\n      const price = item.item.price || 0;\n      const itemTotal = price * quantity;\n      \n      // Добавляем информацию об убранных ингредиентах\n      let removedInfo = '';\n      if (item.removedIngredients && Array.isArray(item.removedIngredients) && item.removedIngredients.length > 0) {\n        removedInfo = `\\n   Без: ${item.removedIngredients.join(', ')}`;\n      }\n      \n      itemsText += `${index + 1}. ${itemName} x${quantity} - ${itemTotal} ₽${removedInfo}\\n`;\n      console.log(`Item ${index} обработан успешно`);\n    } catch (itemError) {\n      console.error(`Ошибка обработки item ${index}:`, itemError);\n      itemsText += `${index + 1}. [Ошибка обработки блюда]\\n`;\n    }\n  });\n} else {\n  console.warn('Нет items или items не массив');\n  itemsText = '[Нет данных о блюдах]';\n}\n\n// Формируем итоговое сообщение\nconst message = `🍽️ *Новый заказ #${orderNumber}*\n\n📅 Дата: ${date}\n🕐 Время: ${time}\n\n📋 *Состав заказа:*\n${itemsText}\n\n💰 *Итого: ${totalAmount} ₽*\n\n${orderData.restaurantId ? `🏢 ID ресторана: ${orderData.restaurantId}` : ''}`;\n\nconsole.log('Итоговое сообщение:', message);\nconsole.log('=== КОНЕЦ ОБРАБОТКИ ===');\n\nreturn {\n  json: {\n    message: message,\n    orderNumber: orderNumber,\n    totalAmount: totalAmount\n  }\n};\n\n"
+      },
+      "id": "a84f2ddf-d030-47f8-912a-a0e3f8cd34d5",
+      "name": "Format Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        5568
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "1267841885",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "dba7b4f8-4ff3-4ebb-842c-e00eb396a0be",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        336,
+        5568
+      ],
+      "webhookId": "1dcba989-963d-4d18-86bc-ab49e51fbd7e",
+      "credentials": {
+        "telegramApi": {
+          "id": "4BBQ9WgVlYoftMZm",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"orderNumber\": $json.orderNumber } }}",
+        "options": {}
+      },
+      "id": "98ee37db-5f14-4438-a16a-4ec4f319a475",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        560,
+        5680
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "order",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "bf79bd41-9c52-490c-8d32-f3c406fbe88f",
+      "name": "Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        5760
+      ],
+      "webhookId": "order"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Format Message": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Telegram": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Format Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2bb7c04f-8ea7-40f8-9f48-e5d98e53989e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6039fc29fe4ac65ea1725fdf96ede33412c4e3d72ed06fe6c55a0d9d93ba077a"
+  },
+  "id": "HTIjVEkhOcHq2az5",
+  "tags": []
+}

@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "rewrites": [
+    {
+      "source": "/mvp/restaurant/:id",
+      "destination": "/mvp/index.html"
+    },
+    {
+      "source": "/mvp/(.*)",
+      "destination": "/mvp/index.html"
+    }
+  ]
+}

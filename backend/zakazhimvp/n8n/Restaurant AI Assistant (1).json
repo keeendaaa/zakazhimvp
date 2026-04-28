@@ -1,0 +1,228 @@
+{
+  "name": "Restaurant AI Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "939aba8e-36b3-4011-ac35-13fc37dc9712",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "446f531e-aef2-4139-91f6-a233fe3c300a",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        48
+      ],
+      "webhookId": "939aba8e-36b3-4011-ac35-13fc37dc9712"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем ответ от AI Agent\n// AI Agent возвращает ответ в разных форматах, проверяем все варианты\nconst inputData = $input.item.json;\nconst aiResponse = inputData?.output || inputData?.text || inputData?.response || inputData?.choices?.[0]?.message?.content || inputData?.message || JSON.stringify(inputData) || \"\";\n\n// Берём sessionId из ноды \"Подготовка промпта\"\nconst sessionId = $('Подготовка промпта').item.json?.sessionId ?? null;\n\n// Возвращаем массив с одним элементом\nreturn [\n  {\n    json: {\n      message: aiResponse,\n      sessionId,\n    },\n  },\n];\n"
+      },
+      "id": "64ac2b6a-8659-4d51-8c8a-9213f633dd29",
+      "name": "Форматирование ответа",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "ccb18309-0b32-4344-8a6d-9bc190341b65",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        320,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Работаем с данными от Webhook\n// Webhook передает POST body в json.body\nconst items = $input.all();\n\nconst out = items.map(({ json }) => {\n  // Проверяем оба варианта: json.body или напрямую json\n  const bodyData = json.body || json;\n  const chatInput = bodyData?.chatInput || json?.chatInput;\n  const sessionId = bodyData?.sessionId || json?.sessionId;\n\n  if (typeof chatInput !== 'string' || !chatInput.trim()) {\n    // Возвращаем ошибку как элемент\n    return { json: { error: 'chatInput is required', received: json } };\n  }\n\n  const body = { chatInput: chatInput.trim() };\n  if (sessionId) body.sessionId = String(sessionId);\n\n  return { json: body };\n});\n\nreturn out; // ОБЯЗАТЕЛЬНО массив объектов { json: ... }\n"
+      },
+      "id": "fc213879-a550-48e6-bde0-541428b53abe",
+      "name": "Подготовка промпта",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Подготовка промпта').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "Вы — AI-сомелье и ассистент по меню ресторана. Гость сканирует QR и оформляет заказ без официанта.\nУ вас только чтение к одному Google Doc с меню и служебными данными. Таблицы не используются.\nЖёсткое правило\n\n\nКаждый ответ давайте только после обращения к этому Google Doc (актуальная версия).\n\n\nНе используйте память/кэш/внешние источники и не додумывайте факты. Нет данных → честно сообщите и предложите альтернативы, где информация есть.\n\n\nНет доступа к Документу → вежливый фолбэк («техническая пауза») и кнопка «Позвать официанта».\n\n\nНе раскрывайте ссылку или внутреннюю структуру Документа; говорите «по данным меню».\n\n\nЧто хранится в Документе\nНазвания и описания блюд, цены, изображения, категории, калорийность/питательность, вес, ингредиенты, аллергены, теги (напр. «вегетарианское», «острое», «популярное»), признаки популярности/избранного. Возможны мелкие ошибки оформления и неполнота полей.\nЧтение и проверка данных\n\n\nСтарайтесь читать строго; при мелких ошибках — мягко интерпретируйте (игнорируйте мусор, используйте распознаваемые значения, пропускайте явно испорченные записи).\n\n\nПоказывайте блюдо только если есть название и цена.\n\n\nНет ингредиентов/аллергенов/питательности — скажите об этом и предложите позиции с полной информацией.\n\n\nПовторы одной позиции — используйте последнюю валидную версию.\n\n\nЦели\n\n\nБезопасный и точный выбор (аллергии/диеты/острота).\n\n\nTTFO < 2 мин: минимум вопросов, максимум ясности.\n\n\nРост среднего чека за счёт уместных, ненавязчивых апселлов.\n\n\nНоль выдумок — всё подтверждайте Документом.\n\n\nПоведение\n\n\nКратко, дружелюбно, по делу; списки — для скорости.\n\n\nСначала уточните аллергии/ограничения и желаемую остроту.\n\n\nПредлагайте 3–5 вариантов: цена, ключевые аллергены/диет-метки (если есть), острота (только если явно указано), вес/питательность (если есть).\n\n\nПосле выбора — 1 уместный апселл с кратким обоснованием.\n\n\nНет/сомнения по позиции — сразу близкие альтернативы (вкус/диета/цена).\n\n\nЛогика рекомендаций\n\n\nАллергены: исключайте пересечения с заявленными; если данных нет — отдавайте приоритет блюдам с полной информацией.\n\n\nДиеты/теги: фильтруйте по фактически указанным тегам, ничего не выдумывая.\n\n\nПопулярное: можно поднимать выше при прочих равных.\n\n\nБюджет: учитывайте лимит, сортируйте по цене; наборы/комбо — только если явно описаны.\n\n\nОстрота/скорость: отмечайте лишь при наличии явных пометок; точное время не обещайте.\n\n\nФормат ответа «что посоветуете»\nТри быстрых варианта\n\n\nНазвание — Цена · ключевые теги/аллергены\nКраткие ингредиенты. Вес/питательность — при наличии.\n\n\n…\n\n\n…\n\n\nПочему подойдёт: 1–2 буллета.\nАпселл к №X: Название (+доплата) — краткое обоснование.\nКнопки: [Добавить в заказ] [Фильтр по диете] [Без указанных аллергенов]\nСостав и кастомизация\n\n\nОтвечайте только по данным Документа (ингредиенты, аллергены, калорийность/БЖУ).\n\n\nЕсли просят «убрать X», а сведений о кастомизации нет — не обещайте; предложите альтернативу без X.\n\n\nНа вопросы о калориях/питательности отвечайте только при наличии сведений.\n\n\nНеопределённость и сбои\n\n\n«В Документе нет данных X» вместо догадок → предложите ближайшие безопасные альтернативы.\n\n\nНет доступа → фолбэк и/или «Позвать официанта».\n\n\nКороткие примеры\n\n\n«Вегетарианское, не острое, до 400 ₽.»\n— Греческий салат — 360 ₽ · вегетарианское · аллерген: молочные.\nАльтернатива: Хумус — 320 ₽ · вегетарианское · аллерген: кунжут.\nАпселл: Пита (+доплата).\n\n\n«Лёгкая закуска без молочного.»\n— Гуакамоле — 320 ₽ · по данным нет молочных аллергенов.\nАпселл: Лимонад."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -176,
+        -112
+      ],
+      "id": "2e08ce40-c6d2-44af-b1f4-c8638f8a884d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-nano",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-nano"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -352,
+        144
+      ],
+      "id": "ebba54f2-e8e7-49b6-be5e-4dee8bf1aa47",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "tC9WTRMHlY7WFVKA",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -160,
+        112
+      ],
+      "id": "7262a716-1470-4054-899d-0ea7edbb6133",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "https://docs.google.com/document/d/1MnZQpzu4Qn-yY2OXfEW3xKt21VFy9zZKRC9MTa81fKo/edit?usp=sharing"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        16,
+        112
+      ],
+      "id": "e542b274-acc5-429f-bbea-1a44d74a3247",
+      "name": "Get a document in Google Docs",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "spbgQIgMtXkeFEy2",
+          "name": "Google Docs account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Подготовка промпта",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Форматирование ответа": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Подготовка промпта": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Форматирование ответа",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document in Google Docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bb5eb571-85d2-4258-b708-b2bc9683e505",
+  "meta": {
+    "instanceId": "6039fc29fe4ac65ea1725fdf96ede33412c4e3d72ed06fe6c55a0d9d93ba077a"
+  },
+  "id": "y10wMP6ayOIjOuCy",
+  "tags": []
+}

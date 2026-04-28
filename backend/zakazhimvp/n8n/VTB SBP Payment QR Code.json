@@ -1,0 +1,340 @@
+{
+  "name": "VTB SBP Payment QR Code",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0dc3f33a-c461-483f-9849-08a504686f9c",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-payment",
+      "name": "Webhook - Payment Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "0dc3f33a-c461-483f-9849-08a504686f9c"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Парсинг данных из webhook запроса\n// Подготовка данных для VTB API\n\nconsole.log('=== VTB SBP Payment Handler ===');\nconsole.log('Input:', JSON.stringify($input, null, 2));\n\n// Получаем данные из body\nlet requestData = null;\n\nif ($input.item && $input.item.json && $input.item.json.body) {\n  const body = $input.item.json.body;\n  requestData = typeof body === 'string' ? JSON.parse(body) : body;\n  console.log('✅ Данные найдены в: $input.item.json.body');\n} else if ($input.item && $input.item.json) {\n  requestData = $input.item.json;\n  console.log('✅ Данные найдены в: $input.item.json');\n} else if ($input.body) {\n  requestData = typeof $input.body === 'string' ? JSON.parse($input.body) : $input.body;\n  console.log('✅ Данные найдены в: $input.body');\n} else {\n  console.error('❌ Данные не найдены!');\n  return {\n    json: {\n      error: true,\n      message: '❌ Ошибка: данные не найдены в запросе',\n      errorCode: 'MISSING_DATA'\n    }\n  };\n}\n\nconsole.log('requestData:', JSON.stringify(requestData, null, 2));\n\n// Извлекаем обязательные параметры\nconst amount = requestData.amount || requestData.totalAmount || 0;\nconst orderNumber = requestData.orderNumber || `ORDER-${Date.now()}`;\nconst description = requestData.description || requestData.orderDescription || 'Оплата заказа';\nconst returnUrl = requestData.returnUrl || 'https://zakazhi.org/payment/return';\nconst testMode = requestData.testMode !== false; // по умолчанию тестовый режим\n\n// Валидация\nif (!amount || amount <= 0) {\n  return {\n    json: {\n      error: true,\n      message: '❌ Ошибка: не указана сумма платежа',\n      errorCode: 'INVALID_AMOUNT'\n    }\n  };\n}\n\n// Конвертируем сумму в копейки, если она в рублях\nconst amountInKopecks = amount < 100 ? amount * 100 : amount;\n\n// Данные для VTB API (из переменных окружения или настроек)\n// ВАЖНО: Эти данные должны быть в переменных окружения n8n!\nconst vtbBaseUrl = $env.VTB_BASE_URL || 'https://vtb.rbsuat.com/payment/rest/';\nconst vtbUserName = $env.VTB_USERNAME || requestData.vtbUserName || requestData.username || 'Restotest125';\nconst vtbPassword = $env.VTB_PASSWORD || 'mmnkh-B5';\n\nconsole.log('Amount (kopecks):', amountInKopecks);\nconsole.log('Order Number:', orderNumber);\nconsole.log('Description:', description);\nconsole.log('Test Mode:', testMode);\n\n// Возвращаем подготовленные данные\nreturn {\n  json: {\n    // Данные запроса\n    amount: amountInKopecks,\n    orderNumber: orderNumber,\n    description: description,\n    returnUrl: returnUrl,\n    testMode: testMode,\n    \n    // Данные для VTB API\n    vtbBaseUrl: vtbBaseUrl,\n    vtbUserName: vtbUserName,\n    vtbPassword: vtbPassword,\n    \n    // Оригинальные данные\n    originalData: requestData\n  }\n};"
+      },
+      "id": "parse-request",
+      "name": "Parse Request Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.vtbBaseUrl }}register.do",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userName",
+              "value": "={{ $json.vtbUserName }}"
+            },
+            {
+              "name": "password",
+              "value": "={{ $json.vtbPassword }}"
+            },
+            {
+              "name": "amount",
+              "value": "={{ $json.amount }}"
+            },
+            {
+              "name": "returnUrl",
+              "value": "={{ $json.returnUrl }}"
+            },
+            {
+              "name": "orderNumber",
+              "value": "={{ $json.orderNumber }}"
+            },
+            {
+              "name": "description",
+              "value": "={{ $json.description }}"
+            },
+            {
+              "name": "language",
+              "value": "ru"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "register-order",
+      "name": "VTB - Register Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Проверка результата регистрации заказа\n// Подготовка данных для создания QR-кода\n\nconsole.log('=== Register Order Response ===');\nconsole.log('Response:', JSON.stringify($input, null, 2));\n\n// Получаем ответ от VTB\nlet registerResponse = null;\n\nif ($input.item && $input.item.json) {\n  registerResponse = $input.item.json;\n} else if ($input.json) {\n  registerResponse = $input.json;\n} else {\n  registerResponse = $input;\n}\n\nconsole.log('Register Response:', JSON.stringify(registerResponse, null, 2));\n\n// Проверяем наличие ошибки\nif (registerResponse.errorCode) {\n  return {\n    json: {\n      error: true,\n      message: `❌ Ошибка регистрации заказа: ${registerResponse.errorMessage || registerResponse.errorCode}`,\n      errorCode: registerResponse.errorCode,\n      errorMessage: registerResponse.errorMessage\n    }\n  };\n}\n\n// Проверяем наличие orderId\nif (!registerResponse.orderId) {\n  return {\n    json: {\n      error: true,\n      message: '❌ Ошибка: не получен orderId от VTB',\n      errorCode: 'NO_ORDER_ID'\n    }\n  };\n}\n\n// Получаем данные из предыдущего узла\nconst previousData = $('Parse Request Data').item.json;\n\nconsole.log('Order ID:', registerResponse.orderId);\nconsole.log('Previous data:', JSON.stringify(previousData, null, 2));\n\n// Возвращаем данные для создания QR-кода\nreturn {\n  json: {\n    // Данные из регистрации\n    orderId: registerResponse.orderId,\n    formUrl: registerResponse.formUrl,\n    \n    // Данные из предыдущего узла\n    amount: previousData.amount,\n    orderNumber: previousData.orderNumber,\n    description: previousData.description,\n    testMode: previousData.testMode,\n    \n    // Данные для VTB API\n    vtbBaseUrl: previousData.vtbBaseUrl,\n    vtbUserName: previousData.vtbUserName,\n    vtbPassword: previousData.vtbPassword\n  }\n};"
+      },
+      "id": "check-register",
+      "name": "Check Register Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-error",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-error",
+      "name": "If Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.vtbBaseUrl }}sbp/c2b/qr/dynamic/create.do",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userName",
+              "value": "={{ $json.vtbUserName }}"
+            },
+            {
+              "name": "password",
+              "value": "={{ $json.vtbPassword }}"
+            },
+            {
+              "name": "mdOrder",
+              "value": "={{ $json.orderId }}"
+            },
+            {
+              "name": "amount",
+              "value": "={{ $json.amount }}"
+            },
+            {
+              "name": "currency",
+              "value": "643"
+            },
+            {
+              "name": "orderDescription",
+              "value": "={{ $json.description }}"
+            },
+            {
+              "name": "language",
+              "value": "ru"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-qr",
+      "name": "VTB - Create QR Code",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Обработка результата создания QR-кода\n// Форматирование ответа для клиента\n\nconsole.log('=== Create QR Response ===');\nconsole.log('Response:', JSON.stringify($input, null, 2));\n\n// Получаем ответ от VTB\nlet qrResponse = null;\n\nif ($input.item && $input.item.json) {\n  qrResponse = $input.item.json;\n} else if ($input.json) {\n  qrResponse = $input.json;\n} else {\n  qrResponse = $input;\n}\n\nconsole.log('QR Response:', JSON.stringify(qrResponse, null, 2));\n\n// Проверяем наличие ошибки\nif (qrResponse.errorCode) {\n  return {\n    json: {\n      error: true,\n      message: `❌ Ошибка создания QR-кода: ${qrResponse.errorMessage || qrResponse.errorCode}`,\n      errorCode: qrResponse.errorCode,\n      errorMessage: qrResponse.errorMessage\n    }\n  };\n}\n\n// Проверяем наличие QR-кода\nif (!qrResponse.qrId || !qrResponse.qrImage) {\n  return {\n    json: {\n      error: true,\n      message: '❌ Ошибка: не получен QR-код от VTB',\n      errorCode: 'NO_QR_CODE'\n    }\n  };\n}\n\n// Получаем данные из предыдущих узлов\nconst registerData = $('Check Register Response').item.json;\n\nconsole.log('QR ID:', qrResponse.qrId);\nconsole.log('QR Image (length):', qrResponse.qrImage ? qrResponse.qrImage.length : 0);\n\n// Формируем ответ для клиента\nconst response = {\n  success: true,\n  message: 'QR-код успешно создан',\n  \n  // Данные платежа\n  orderId: registerData.orderId,\n  orderNumber: registerData.orderNumber,\n  amount: registerData.amount,\n  amountRubles: (registerData.amount / 100).toFixed(2),\n  description: registerData.description,\n  \n  // Данные QR-кода\n  qrId: qrResponse.qrId,\n  qrUrl: qrResponse.qrUrl || '',\n  qrImage: qrResponse.qrImage, // Base64 изображение\n  qrImageUrl: qrResponse.qrImage ? `data:image/png;base64,${qrResponse.qrImage}` : null,\n  \n  // Тестовый режим\n  testMode: registerData.testMode,\n  \n  // Метаданные\n  timestamp: new Date().toISOString(),\n  expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString() // QR-код действителен 30 минут\n};\n\nconsole.log('Final Response:', JSON.stringify(response, null, 2));\n\nreturn {\n  json: response\n};"
+      },
+      "id": "format-response",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": false, \"error\": $json.message || \"Unknown error\", \"errorCode\": $json.errorCode } }}",
+        "options": {}
+      },
+      "id": "respond-error",
+      "name": "Respond - Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        400
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Payment Request": {
+      "main": [
+        [
+          {
+            "node": "Parse Request Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Request Data": {
+      "main": [
+        [
+          {
+            "node": "VTB - Register Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VTB - Register Order": {
+      "main": [
+        [
+          {
+            "node": "Check Register Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Register Response": {
+      "main": [
+        [
+          {
+            "node": "If Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Error": {
+      "main": [
+        [
+          {
+            "node": "Respond - Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "VTB - Create QR Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VTB - Create QR Code": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "vtb-sbp-payment-v1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "6039fc29fe4ac65ea1725fdf96ede33412c4e3d72ed06fe6c55a0d9d93ba077a"
+  },
+  "id": "VTBSBPPaymentQR",
+  "tags": []
+}
+

@@ -1,23 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { CheckCircle2, Clock, ChefHat } from 'lucide-react';
-import { LoginForm } from './LoginForm';
 
 interface OrderConfirmationNewProps {
   orderNumber: string;
   onBackToMenu: () => void;
-  onPayment?: () => void;
 }
 
 export default function OrderConfirmationNew({
   orderNumber,
   onBackToMenu,
-  onPayment,
 }: OrderConfirmationNewProps) {
   const [estimatedTime, setEstimatedTime] = useState(15);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    return false; // localStorage.getItem('isLoggedIn') === 'true';
-  });
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -65,30 +59,14 @@ export default function OrderConfirmationNew({
           </p>
         </div>
 
-        {/* Login Section - показываем если не залогинен */}
-        {!isLoggedIn && (
-          <div className="mb-6 w-full">
-            <LoginForm onLogin={(user) => {
-              console.log('User logged in:', user);
-              // Сохраняем данные пользователя
-              localStorage.setItem('isLoggedIn', 'true');
-              localStorage.setItem('telegramUser', JSON.stringify(user));
-              setIsLoggedIn(true);
-              // TODO: Отправить данные на сервер для регистрации/авторизации
-            }} />
-          </div>
-        )}
-
         {/* Actions */}
         <div className="space-y-3">
-          {onPayment && (
-            <Button
-              onClick={onPayment}
-              className="w-full h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
-            >
-              Оплатить
-            </Button>
-          )}
+          <Button
+            onClick={onBackToMenu}
+            className="w-full h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+          >
+            добавить что-то ещё?
+          </Button>
           
           <Button
             onClick={onBackToMenu}
