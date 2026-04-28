@@ -8,10 +8,12 @@ This is a production backup and recovery repository for the Zakazhi QR menu prod
 
 ## Main Map
 
-- `package.json` - QR menu frontend app. React 18 + Vite. This is the app served at `/mvp/`.
-- `src/` - QR menu frontend source.
-- `build/` - production build copied from the server. It is tracked because the server served this directory directly.
-- `landing/` - static landing site copied from `/var/www/landing`. It is served as the root site by nginx.
+- `package.json` - root helper scripts only. It is not an app package.
+- `apps/qr-menu/package.json` - QR menu frontend app. React 18 + Vite. This is the app served at `/mvp/`.
+- `apps/qr-menu/src/` - QR menu frontend source.
+- `apps/qr-menu/build/` - production QR menu build copied from the server. It is tracked because the server served this directory directly.
+- `landing/source/` - full editable React/Vite landing source copied from `/Users/kenda/dev/final landing`.
+- `landing/production-build/` - static landing site copied from `/var/www/landing`. It is served as the root site by nginx.
 - `backend/` - Wasp/OpenSaaS backend copied from `/opt/zakazhi`.
 - `backend/main.wasp` - backend route/entity/action configuration.
 - `backend/schema.prisma` - source Prisma schema.
@@ -25,8 +27,8 @@ This is a production backup and recovery repository for the Zakazhi QR menu prod
 
 ## Production Routing
 
-- `https://zakazhi.online/` serves `landing/` from `/var/www/landing`.
-- `https://zakazhi.online/mvp/` serves the QR menu frontend build from `/var/www/zakazhimvp/build`.
+- `https://zakazhi.online/` serves `landing/production-build/` equivalent from `/var/www/landing`.
+- `https://zakazhi.online/mvp/` serves `apps/qr-menu/build/` equivalent from `/var/www/zakazhimvp/build`.
 - `https://n8n.zakazhi.online/` proxies to n8n on `127.0.0.1:5678`.
 - `/webhook...` paths on the n8n domain are intended for unauthenticated automation webhook calls.
 
@@ -56,7 +58,8 @@ This is a production backup and recovery repository for the Zakazhi QR menu prod
 Use these commands before committing frontend changes:
 
 ```bash
-npm run build
+npm run build:qr
+npm run build:landing
 ```
 
 Use these checks for secrets:
@@ -69,8 +72,8 @@ Manually inspect any `.env`, `.key`, `.pem`, `.crt`, or config files before stag
 
 ## Editing Advice
 
-- Treat root frontend and `landing/` as separate deployables.
-- Do not delete `build/` unless deployment strategy is changed; nginx currently serves it directly.
+- Treat `apps/qr-menu/` and `landing/` as separate deployables.
+- Do not delete `apps/qr-menu/build/` or `landing/production-build/` unless deployment strategy is changed; nginx currently serves static build directories directly.
 - Prefer documenting production facts over guessing architecture.
 - If changing backend env names, update `backend/.env.server.example`, `README.md`, and `docs/DEPLOYMENT.md` together.
 - If changing n8n workflows, keep exported JSON in the repo and document expected webhook URLs.

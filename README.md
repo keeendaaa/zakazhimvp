@@ -22,9 +22,9 @@ Zakazhi has four main parts:
 
 ## Repository Map
 
-- `/` - QR menu frontend source. Main entry: `src/main.tsx`, `src/App.tsx`.
-- `build/` - production QR menu build copied from the server.
-- `landing/` - static landing copied from `/var/www/landing`.
+- `apps/qr-menu/` - QR menu frontend source and production build snapshot. Main entry: `apps/qr-menu/src/main.tsx`, `apps/qr-menu/src/App.tsx`.
+- `landing/source/` - full editable React/Vite landing source copied from `/Users/kenda/dev/final landing`.
+- `landing/production-build/` - static landing copied from production `/var/www/landing`.
 - `backend/` - Wasp backend copied from `/opt/zakazhi`.
 - `backend/main.wasp` - Wasp app config, routes, auth, actions, queries.
 - `backend/schema.prisma` - Prisma schema.
@@ -33,6 +33,16 @@ Zakazhi has four main parts:
 - `database/backups/` - compressed SQL dumps.
 - `database/postgresql-raw/16-main/` - emergency raw PostgreSQL 16 data directory backup.
 - `docs/` - deployment docs, AI guide, nginx snapshots.
+- `archives/` - original uploaded/source archives kept only for recovery context.
+
+## Root Scripts
+
+```bash
+npm run dev:qr
+npm run build:qr
+npm run dev:landing
+npm run build:landing
+```
 
 ## Secrets
 
@@ -46,22 +56,35 @@ The n8n Docker Compose password was replaced with `CHANGE_ME`. Set a strong pass
 ## QR Menu Frontend
 
 ```bash
+cd apps/qr-menu
 npm install
 npm run dev
 npm run build
 ```
 
-Production serves the built files from `build/` under `/mvp/`.
+Production serves the built files from `apps/qr-menu/build/` under `/mvp/`.
 
 ## Landing
 
-The landing is stored separately in `landing/`. It is a static built site, not the same app as the QR menu frontend.
+The landing is stored separately in `landing/`. It is not the same app as the QR menu frontend.
+
+- `landing/source/` is the full editable source code.
+- `landing/production-build/` is the exact static server snapshot from `/var/www/landing`.
 
 Production nginx uses it as the root site:
 
 ```nginx
 root /var/www/landing;
 index index.html;
+```
+
+Landing source commands:
+
+```bash
+cd landing/source
+npm install
+npm run dev
+npm run build
 ```
 
 ## Backend

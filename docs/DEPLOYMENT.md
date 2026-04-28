@@ -4,8 +4,9 @@ This repository is a backup of the Zakazhi QR menu application from `92.255.79.1
 
 ## Repository Layout
 
-- `/` - active QR menu frontend, React 18 + Vite. On the server it was located at `/var/www/zakazhimvp` and served from `/mvp/`.
-- `landing/` - static landing site copied from `/var/www/landing` and served at the domain root.
+- `apps/qr-menu/` - active QR menu frontend, React 18 + Vite. On the server it was located at `/var/www/zakazhimvp` and served from `/mvp/`.
+- `landing/source/` - full editable landing source copied from `/Users/kenda/dev/final landing`.
+- `landing/production-build/` - static landing site copied from `/var/www/landing` and served at the domain root.
 - `backend/` - Wasp/OpenSaaS backend copied from `/opt/zakazhi`.
 - `integrations/n8n/` - n8n Docker Compose and menu data copied from `/opt/n8n`.
 - `backend/zakazhimvp/n8n/` - exported n8n workflow JSON files.
@@ -40,10 +41,20 @@ This repository is a backup of the Zakazhi QR menu application from `92.255.79.1
 
 ## Landing Deploy
 
-The landing in `landing/` is a static built site. Deploy it to `/var/www/landing`:
+The editable landing code is in `landing/source/`. The production static snapshot is in `landing/production-build/`.
+
+Build from source:
 
 ```bash
-rsync -az --delete landing/ root@SERVER:/var/www/landing/
+cd landing/source
+npm install
+npm run build
+```
+
+Deploy the built files or the production snapshot to `/var/www/landing`:
+
+```bash
+rsync -az --delete landing/source/dist/ root@SERVER:/var/www/landing/
 ```
 
 Nginx serves it as the domain root:
@@ -58,6 +69,7 @@ The landing has absolute asset paths like `/assets/...`, so it expects to be ser
 ## Frontend Development And Deploy
 
 ```bash
+cd apps/qr-menu
 npm install
 npm run dev
 npm run build

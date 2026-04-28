@@ -5,9 +5,10 @@
 .DS_Store
 *.log
 node_modules/
-backend/node_modules/
+**/node_modules/
 backend/.wasp/out/node_modules/
 dist/
+**/dist/
 coverage/
 *.pem
 *.key
