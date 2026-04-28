@@ -1,0 +1,9 @@
+# robots.txt for zakazhi.online
+# Allows indexing of entire site except MVP application
+
+User-agent: *
+Allow: /
+Disallow: /mvp/
+
+# Sitemap location
+Sitemap: https://zakazhi.online/sitemap.xml
